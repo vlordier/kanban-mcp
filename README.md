@@ -66,7 +66,6 @@ Open the browser at http://localhost:8221
   - Input:
       - `name` (string): The name of the board
       - `projectGoal` (string): The goal of the project.
-  - Create a basic default todo/doing/done board.
 
 - **add-task-to-board**
   - Add a new task to the landing column (to-do) of a kanban board.
@@ -74,7 +73,6 @@ Open the browser at http://localhost:8221
       - `boardId` (string): The ID of the board to add the task to
       - `title` (string): The title of the task
       - `content` (string): The content of the task in markdown format
-  - Add the task to the landing column of the specified board.
 
 - **move-task**
   - Move a task from one column to another, respecting WIP limits.
@@ -82,13 +80,11 @@ Open the browser at http://localhost:8221
       - `taskId` (string): The ID of the task to move
       - `targetColumnId` (string): The ID of the column to move the task to
       - `reason` (string, optional): The reason for moving the task
-  - Move the task to the specified column if the WIP limit allows.
 
 - **delete-task**
   - Delete a task.
   - Input:
       - `taskId` (string): The ID of the task to delete
-  - Delete the task from the board.
 
 - **get-board-info**
   - Get the full info of a kanban board, including columns and tasks.
@@ -109,8 +105,13 @@ Open the browser at http://localhost:8221
 
 ### Prompts
 
-#### create-kanban-based-project
-Create a kanban board for a project, ask questions to divide the project into tasks, and add them to the board.
+- **create-kanban-based-project**
+  - Create a kanban board for a project, ask questions to divide the project into tasks, and add them to the board.
+  - Input:
+    - `description` (string): The description of the project
 
-#### make-progress-on-a-project
-Make progress on an existing project by locating its kanban board, selecting the next task, and working on it.
+
+- **make-progress-on-a-project**
+  - Make progress on an existing project by locating its kanban board, selecting the next task, and working on it.
+  - Input:
+    - `description` (string): The description of the project
