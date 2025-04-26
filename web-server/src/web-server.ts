@@ -102,6 +102,11 @@ class WebServer {
         }
       }
     );
+
+    // handle 404 by redirecting to /
+    this.server.setNotFoundHandler((request: FastifyRequest, reply: FastifyReply) => {
+      reply.redirect("/");
+    });
   }
 
   /**
@@ -113,9 +118,6 @@ class WebServer {
       root: path.join(__dirname, "../../../web-ui/dist"),
       prefix: "/"
     });
-
-    
-
   }
 
   /**
