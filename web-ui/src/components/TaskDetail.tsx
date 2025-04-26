@@ -1,14 +1,25 @@
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import { getTaskById } from '../services/api';
 
 interface TaskDetailProps {
   taskId: string | null;
   onClose: () => void;
+  onPrevTask?: () => void;
+  onNextTask?: () => void;
+  hasPrevTask?: boolean;
+  hasNextTask?: boolean;
 }
 
-export default function TaskDetail({ taskId, onClose }: TaskDetailProps) {
+export default function TaskDetail({ 
+  taskId, 
+  onClose, 
+  onPrevTask, 
+  onNextTask, 
+  hasPrevTask = false, 
+  hasNextTask = false 
+}: TaskDetailProps) {
   const { data: task, isLoading, error } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => (taskId ? getTaskById(taskId) : null),
@@ -31,7 +42,31 @@ export default function TaskDetail({ taskId, onClose }: TaskDetailProps) {
                     <DialogTitle className="text-base font-semibold text-gray-900">
                       {isLoading ? 'Loading...' : error ? 'Error loading task' : task?.title}
                     </DialogTitle>
-                    <div className="ml-3 flex h-7 items-center">
+                    <div className="ml-3 flex h-7 items-center space-x-2">
+                      {onPrevTask && (
+                        <button
+                          type="button"
+                          onClick={onPrevTask}
+                          disabled={!hasPrevTask}
+                          className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="Previous task"
+                        >
+                          <span className="absolute -inset-2.5" />
+                          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                      )}
+                      {onNextTask && (
+                        <button
+                          type="button"
+                          onClick={onNextTask}
+                          disabled={!hasNextTask}
+                          className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="Next task"
+                        >
+                          <span className="absolute -inset-2.5" />
+                          <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={onClose}

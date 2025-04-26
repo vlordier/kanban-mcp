@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getBoardWithColumnsAndTasks } from '../services/api';
@@ -22,6 +22,50 @@ export default function BoardDetail() {
   const handleCloseTaskDetail = () => {
     setSelectedTaskId(null);
   };
+
+  // Find the current column and task index
+  const currentColumnAndTaskIndex = useMemo(() => {
+    if (!selectedTaskId || !data?.columns) return null;
+    
+    for (const column of data.columns) {
+      const taskIndex = column.tasks.findIndex(task => task.id === selectedTaskId);
+      if (taskIndex !== -1) {
+        return { column, taskIndex };
+      }
+    }
+    return null;
+  }, [selectedTaskId, data?.columns]);
+
+  // Navigate to previous task in the same column
+  const handlePrevTask = useCallback(() => {
+    if (!currentColumnAndTaskIndex) return;
+    
+    const { column, taskIndex } = currentColumnAndTaskIndex;
+    if (taskIndex > 0) {
+      setSelectedTaskId(column.tasks[taskIndex - 1].id);
+    }
+  }, [currentColumnAndTaskIndex]);
+
+  // Navigate to next task in the same column
+  const handleNextTask = useCallback(() => {
+    if (!currentColumnAndTaskIndex) return;
+    
+    const { column, taskIndex } = currentColumnAndTaskIndex;
+    if (taskIndex < column.tasks.length - 1) {
+      setSelectedTaskId(column.tasks[taskIndex + 1].id);
+    }
+  }, [currentColumnAndTaskIndex]);
+
+  // Check if there are previous or next tasks available
+  const hasPrevTask = useMemo(() => {
+    return currentColumnAndTaskIndex ? currentColumnAndTaskIndex.taskIndex > 0 : false;
+  }, [currentColumnAndTaskIndex]);
+
+  const hasNextTask = useMemo(() => {
+    if (!currentColumnAndTaskIndex) return false;
+    const { column, taskIndex } = currentColumnAndTaskIndex;
+    return taskIndex < column.tasks.length - 1;
+  }, [currentColumnAndTaskIndex]);
 
   if (isLoading) {
     return (
@@ -84,7 +128,14 @@ export default function BoardDetail() {
         </div>
       </div>
 
-      <TaskDetail taskId={selectedTaskId} onClose={handleCloseTaskDetail} />
+      <TaskDetail 
+        taskId={selectedTaskId} 
+        onClose={handleCloseTaskDetail} 
+        onPrevTask={handlePrevTask}
+        onNextTask={handleNextTask}
+        hasPrevTask={hasPrevTask}
+        hasNextTask={hasNextTask}
+      />
     </div>
   );
 }
