@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import crypto from "crypto";
 import fs from "fs";
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 export class ColumnCapacityFullError extends Error {
   constructor(message: string) {
@@ -371,6 +371,7 @@ export class KanbanDB {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         update_reason TEXT,
+        metadata TEXT,
         FOREIGN KEY (column_id) REFERENCES columns(id)
       );
     `);
