@@ -50,7 +50,7 @@ describe("KanbanDB", () => {
         { name: "Done", position: 2, wipLimit: 0, isDoneColumn: true },
       ];
 
-      const result = kanbanDb.createBoard(boardName, projectGoal, columns);
+      const result = kanbanDb.createBoard(boardName, projectGoal, columns, 0);
 
       // Verify board was created
       expect(result.boardId).toBeDefined();
@@ -95,7 +95,7 @@ describe("KanbanDB", () => {
       // First create a board with columns
       const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
         { name: "To Do", position: 0, wipLimit: 5 },
-      ]);
+      ], 0);
 
       // Get the column ID
       const columns = kanbanDb.getColumnsForBoard(boardId);
@@ -134,7 +134,7 @@ describe("KanbanDB", () => {
       const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
         { name: "To Do", position: 0, wipLimit: 5 },
         { name: "In Progress", position: 1, wipLimit: 3 },
-      ]);
+      ], 0);
 
       // Get column IDs
       const columns = kanbanDb.getColumnsForBoard(boardId);
@@ -169,7 +169,7 @@ describe("KanbanDB", () => {
       const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
         { name: "To Do", position: 0, wipLimit: 5 },
         { name: "Done", position: 1, wipLimit: 0, isDoneColumn: true },
-      ]);
+      ], 0);
 
       // Get column IDs
       const columns = kanbanDb.getColumnsForBoard(boardId);
@@ -205,7 +205,7 @@ describe("KanbanDB", () => {
       const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
         { name: "To Do", position: 0, wipLimit: 0 },
         { name: "In Progress", position: 1, wipLimit: 2 },
-      ]);
+      ], 0);
 
       // Get column IDs
       const columns = kanbanDb.getColumnsForBoard(boardId);
@@ -245,7 +245,7 @@ describe("KanbanDB", () => {
         { name: "To Do", position: 0, wipLimit: 5 },
         { name: "In Progress", position: 1, wipLimit: 3 },
         { name: "Done", position: 2, wipLimit: 0, isDoneColumn: true },
-      ]);
+      ], 0);
 
       // Get column IDs
       const columns = kanbanDb.getColumnsForBoard(boardId);
@@ -295,10 +295,10 @@ describe("KanbanDB", () => {
       // Create multiple boards
       kanbanDb.createBoard("Board 1", "Goal 1", [
         { name: "To Do", position: 0, wipLimit: 5 },
-      ]);
+      ], 0);
       kanbanDb.createBoard("Board 2", "Goal 2", [
         { name: "To Do", position: 0, wipLimit: 5 },
-      ]);
+      ], 0);
 
       // Get all boards
       const boards = kanbanDb.getAllBoards();
@@ -322,7 +322,7 @@ describe("KanbanDB", () => {
       // Create a board with columns
       const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
         { name: "To Do", position: 0, wipLimit: 5 },
-      ]);
+      ], 0);
 
       // Get the column ID
       const columns = kanbanDb.getColumnsForBoard(boardId);
@@ -348,7 +348,7 @@ describe("KanbanDB", () => {
       // Create a board with columns
       const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
         { name: "To Do", position: 0, wipLimit: 5 },
-      ]);
+      ], 0);
 
       // Delete the task
       const changes = kanbanDb.deleteTask("nonexistent-task-id");

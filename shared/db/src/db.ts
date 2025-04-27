@@ -81,8 +81,19 @@ export class KanbanDB {
   public createBoard(
     name: string,
     projectGoal: string,
-    columns: ColumnDefinition[]
+    columns: ColumnDefinition[],
+    landingColumnPosition: number
   ): { boardId: string; landingColumnId: string | null } {
+    if (columns.length === 0) {
+      throw new Error("At least one column is required to create a board");
+    }
+
+    if (landingColumnPosition < 0 || landingColumnPosition >= columns.length) {
+      throw new Error(
+        `Landing column position ${landingColumnPosition} is out of bounds for the provided columns`
+      );
+    }
+
     const boardId = this.generateUUID();
     const now = new Date().toISOString();
     let landingColumnId: string | null = null;
@@ -116,8 +127,7 @@ export class KanbanDB {
           column.isDoneColumn ? 1 : 0
         );
 
-        // Set the "To Do" column as the landing column
-        if (column.name === "To Do") {
+        if (column.position === landingColumnPosition) {
           landingColumnId = columnId;
         }
       }

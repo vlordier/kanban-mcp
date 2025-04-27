@@ -27,12 +27,19 @@ mcpServer.tool(
   { name: z.string(), projectGoal: z.string() },
   async ({ name, projectGoal }) => {
     const columns = [
-      { name: "To Do", position: 0, wipLimit: 0 },
-      { name: "In Progress", position: 1, wipLimit: 3 },
-      { name: "Done", position: 2, wipLimit: 0, isDoneColumn: true },
+      { name: "On Hold", position: 0, wipLimit: 0 }, // 0 means unlimited
+      { name: "To Do", position: 1, wipLimit: 0 },
+      { name: "In Progress", position: 2, wipLimit: 3 },
+      { name: "Done", position: 3, wipLimit: 0, isDoneColumn: true },
     ];
 
-    const { boardId } = kanbanDB.createBoard(name, projectGoal, columns);
+    const landingColPos = 1; // The "To Do" column
+    const { boardId } = kanbanDB.createBoard(
+      name,
+      projectGoal,
+      columns,
+      landingColPos
+    );
 
     return {
       content: [
