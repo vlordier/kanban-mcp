@@ -347,6 +347,44 @@ export class KanbanDB {
     return res.changes;
   }
 
+  public deleteBoard(boardId: string): number {
+    // Use a transaction to ensure all related data is deleted
+    const transaction = this.db.transaction(() => {
+      // First, get all columns for this board
+      const columns = this.getColumnsForBoard(boardId);
+      
+      // Delete all tasks in each column
+      const deleteTasksStmt = this.db.prepare<[string]>(`
+        DELETE FROM tasks
+        WHERE column_id = ?
+      `);
+      
+      for (const column of columns) {
+        deleteTasksStmt.run(column.id);
+      }
+      
+      // Delete all columns for this board
+      const deleteColumnsStmt = this.db.prepare<[string]>(`
+        DELETE FROM columns
+        WHERE board_id = ?
+      `);
+      
+      deleteColumnsStmt.run(boardId);
+      
+      // Finally, delete the board itself
+      const deleteBoardStmt = this.db.prepare<[string]>(`
+        DELETE FROM boards
+        WHERE id = ?
+      `);
+      
+      return deleteBoardStmt.run(boardId);
+    });
+    
+    // Execute the transaction and return the number of changes
+    const result = transaction();
+    return result.changes;
+  }
+
   private generateUUID(): string {
     return crypto.randomUUID();
   }

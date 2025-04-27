@@ -1,12 +1,41 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { getAllBoards } from '../services/api';
+import { getAllBoards, deleteBoard } from '../services/api';
+import { useState } from 'react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 export default function BoardList() {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
+  
   const { data: boards, isLoading, error } = useQuery({
     queryKey: ['boards'],
     queryFn: getAllBoards,
   });
+
+  const handleDeleteClick = (boardId: string, boardName: string) => {
+    setBoardToDelete({ id: boardId, name: boardName });
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!boardToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      await deleteBoard(boardToDelete.id);
+      // Invalidate the boards query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+    } catch (error) {
+      console.error('Error deleting board:', error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setBoardToDelete(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -61,7 +90,7 @@ export default function BoardList() {
                     Updated At
                   </th>
                   <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                    <span className="sr-only">View</span>
+                    <span className="sr-only">Actions</span>
                   </th>
                 </tr>
               </thead>
@@ -79,9 +108,15 @@ export default function BoardList() {
                       {new Date(board.updated_at).toLocaleString()}
                     </td>
                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <Link to={`/boards/${board.id}`} className="text-indigo-600 hover:text-indigo-900">
+                      <Link to={`/boards/${board.id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">
                         View<span className="sr-only">, {board.name}</span>
                       </Link>
+                      <button
+                        onClick={() => handleDeleteClick(board.id, board.name)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete<span className="sr-only">, {board.name}</span>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -90,6 +125,49 @@ export default function BoardList() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => !isDeleting && setIsDeleteDialogOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="mx-auto max-w-sm rounded bg-white p-6 shadow-xl">
+            <DialogTitle className="text-lg font-medium text-gray-900">
+              Delete Board
+            </DialogTitle>
+            
+            <div className="mt-2">
+              <p className="text-sm text-gray-500">
+                Are you sure you want to delete the board "{boardToDelete?.name}"? 
+                This action cannot be undone and all tasks will be permanently deleted.
+              </p>
+            </div>
+
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
     </div>
   );
 }

@@ -52,3 +52,20 @@ export async function moveTask(taskId: string, targetColumnId: string, reason?: 
 
   return response.json();
 }
+
+export async function deleteBoard(boardId: string): Promise<{
+  success: boolean;
+  message: string;
+  boardId: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/boards/${boardId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `Failed to delete board with ID ${boardId}`);
+  }
+
+  return response.json();
+}

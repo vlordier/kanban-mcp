@@ -355,4 +355,51 @@ describe("KanbanDB", () => {
       expect(changes).toBe(0);
     });
   });
+
+  describe("deleteBoard", () => {
+    it("should delete a board and all its related data", () => {
+      // Create a board with columns
+      const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
+        { name: "To Do", position: 0, wipLimit: 5 },
+        { name: "In Progress", position: 1, wipLimit: 3 },
+        { name: "Done", position: 2, wipLimit: 0, isDoneColumn: true },
+      ], 0);
+
+      // Get column IDs
+      const columns = kanbanDb.getColumnsForBoard(boardId);
+      const todoColumnId = columns[0].id;
+      const inProgressColumnId = columns[1].id;
+
+      // Add tasks to columns
+      const task1 = kanbanDb.addTaskToColumn(todoColumnId, "Task 1", "Content 1");
+      const task2 = kanbanDb.addTaskToColumn(todoColumnId, "Task 2", "Content 2");
+      const task3 = kanbanDb.addTaskToColumn(inProgressColumnId, "Task 3", "Content 3");
+
+      // Delete the board
+      const changes = kanbanDb.deleteBoard(boardId);
+      
+      // Verify the board was deleted
+      const deletedBoard = kanbanDb.getBoardById(boardId);
+      expect(deletedBoard).toBeUndefined();
+      
+      // Verify columns were deleted
+      const remainingColumns = kanbanDb.getColumnsForBoard(boardId);
+      expect(remainingColumns.length).toBe(0);
+      
+      // Verify tasks were deleted
+      const task1Exists = kanbanDb.getTaskById(task1.id);
+      const task2Exists = kanbanDb.getTaskById(task2.id);
+      const task3Exists = kanbanDb.getTaskById(task3.id);
+      
+      expect(task1Exists).toBeUndefined();
+      expect(task2Exists).toBeUndefined();
+      expect(task3Exists).toBeUndefined();
+    });
+
+    it("should return 0 changes if board does not exist", () => {
+      // Delete a non-existent board
+      const changes = kanbanDb.deleteBoard("nonexistent-board-id");
+      expect(changes).toBe(0);
+    });
+  });
 });

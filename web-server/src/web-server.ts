@@ -80,6 +80,38 @@ class WebServer {
       }
     );
 
+    // Delete a board and all its related data
+    this.server.delete(
+      "/api/boards/:boardId",
+      async (
+        request: FastifyRequest<{ Params: { boardId: string } }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const { boardId } = request.params;
+          
+          // Check if board exists
+          const board = this.kanbanDB.getBoardById(boardId);
+          if (!board) {
+            return reply.code(404).send({ error: "Board not found" });
+          }
+          
+          // Delete the board and all related data
+          const changes = this.kanbanDB.deleteBoard(boardId);
+          
+          return reply.code(200).send({ 
+            success: true,
+            message: "Board deleted successfully",
+            boardId,
+            changes
+          });
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Internal Server Error" });
+        }
+      }
+    );
+
     // Get the task full info and content
     this.server.get(
       "/api/tasks/:taskId",
