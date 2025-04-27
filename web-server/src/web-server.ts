@@ -6,7 +6,7 @@ import Fastify, {
 import fastifyStatic from "@fastify/static";
 import fastifyCors from "@fastify/cors";
 import path from "path";
-import { KanbanDB } from "@kanban-mcp/db";
+import { KanbanDB, ColumnCapacityFullError } from "@kanban-mcp/db";
 
 /**
  * WebServer class that handles the web server functionality
@@ -96,6 +96,61 @@ class WebServer {
           }
 
           return reply.code(200).send(task);
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Internal Server Error" });
+        }
+      }
+    );
+
+    // Move a task to a different column
+    this.server.post(
+      "/api/tasks/:taskId/move",
+      async (
+        request: FastifyRequest<{
+          Params: { taskId: string };
+          Body: { targetColumnId: string; reason?: string };
+        }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const { taskId } = request.params;
+          const { targetColumnId, reason } = request.body as { targetColumnId: string; reason?: string };
+          
+          // Check if task exists
+          const task = this.kanbanDB.getTaskById(taskId);
+          if (!task) {
+            return reply.code(404).send({ error: "Task not found" });
+          }
+          
+          // Check if target column exists
+          const targetColumn = this.kanbanDB.getColumnById(targetColumnId);
+          if (!targetColumn) {
+            return reply.code(404).send({ error: "Target column not found" });
+          }
+          
+          try {
+            // Move the task
+            this.kanbanDB.moveTask(taskId, targetColumnId, reason);
+            
+            // Return success response
+            return reply.code(200).send({ 
+              success: true,
+              message: "Task moved successfully",
+              taskId,
+              sourceColumnId: task.column_id,
+              targetColumnId
+            });
+          } catch (error) {
+            // Handle WIP limit error
+            if (error instanceof ColumnCapacityFullError) {
+              return reply.code(422).send({ 
+                error: "Column capacity full",
+                message: (error as Error).message
+              });
+            }
+            throw error;
+          }
         } catch (error) {
           request.log.error(error);
           return reply.code(500).send({ error: "Internal Server Error" });

@@ -1,16 +1,20 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getBoardWithColumnsAndTasks } from '../services/api';
-import Column from './Column';
-import TaskDetail from './TaskDetail';
+import { useState, useCallback, useMemo } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getBoardWithColumnsAndTasks, moveTask } from "../services/api";
+import Column from "./Column";
+import TaskDetail from "./TaskDetail";
+import { DragAndDropProvider } from "../contexts/DragAndDropContext";
+import { useNotifications } from "./NotificationContainer";
 
 export default function BoardDetail() {
   const { boardId } = useParams<{ boardId: string }>();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const notifications = useNotifications();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['board', boardId],
+    queryKey: ["board", boardId],
     queryFn: () => (boardId ? getBoardWithColumnsAndTasks(boardId) : null),
     enabled: !!boardId,
   });
@@ -26,9 +30,11 @@ export default function BoardDetail() {
   // Find the current column and task index
   const currentColumnAndTaskIndex = useMemo(() => {
     if (!selectedTaskId || !data?.columns) return null;
-    
+
     for (const column of data.columns) {
-      const taskIndex = column.tasks.findIndex(task => task.id === selectedTaskId);
+      const taskIndex = column.tasks.findIndex(
+        (task) => task.id === selectedTaskId
+      );
       if (taskIndex !== -1) {
         return { column, taskIndex };
       }
@@ -39,7 +45,7 @@ export default function BoardDetail() {
   // Navigate to previous task in the same column
   const handlePrevTask = useCallback(() => {
     if (!currentColumnAndTaskIndex) return;
-    
+
     const { column, taskIndex } = currentColumnAndTaskIndex;
     if (taskIndex > 0) {
       setSelectedTaskId(column.tasks[taskIndex - 1].id);
@@ -49,7 +55,7 @@ export default function BoardDetail() {
   // Navigate to next task in the same column
   const handleNextTask = useCallback(() => {
     if (!currentColumnAndTaskIndex) return;
-    
+
     const { column, taskIndex } = currentColumnAndTaskIndex;
     if (taskIndex < column.tasks.length - 1) {
       setSelectedTaskId(column.tasks[taskIndex + 1].id);
@@ -58,7 +64,9 @@ export default function BoardDetail() {
 
   // Check if there are previous or next tasks available
   const hasPrevTask = useMemo(() => {
-    return currentColumnAndTaskIndex ? currentColumnAndTaskIndex.taskIndex > 0 : false;
+    return currentColumnAndTaskIndex
+      ? currentColumnAndTaskIndex.taskIndex > 0
+      : false;
   }, [currentColumnAndTaskIndex]);
 
   const hasNextTask = useMemo(() => {
@@ -75,21 +83,72 @@ export default function BoardDetail() {
     );
   }
 
+  // Handle moving a task between columns
+  const handleMoveTask = async (
+    taskId: string,
+    _sourceColumnId: string,
+    destinationColumnId: string
+  ) => {
+    try {
+      // Perform the actual API call
+      await moveTask(taskId, destinationColumnId);
+
+      // Invalidate the query to refetch the board data
+      await queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+    } catch (error) {
+      console.error("Failed to move task:", error);
+
+      // Show detailed error message
+      if (error instanceof Error) {
+        if (error.message.includes("capacity limit")) {
+          notifications.error(
+            "Column capacity limit reached",
+            "This column has reached its maximum capacity. Complete or move existing tasks before adding new ones."
+          );
+        } else {
+          notifications.error("Failed to move task", error.message);
+        }
+      } else {
+        notifications.error(
+          "Failed to move task",
+          "An unexpected error occurred while moving the task."
+        );
+      }
+
+      // Refetch to ensure UI is in sync with server state
+      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+
+      return Promise.reject(error);
+    }
+  };
+
   if (error || !data) {
     return (
       <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            <svg
+              className="h-5 w-5 text-red-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
           <div className="ml-3">
             <p className="text-sm text-red-700">
-              Error loading board: {error instanceof Error ? error.message : 'Board not found'}
+              Error loading board:{" "}
+              {error instanceof Error ? error.message : "Board not found"}
             </p>
             <div className="mt-2">
-              <Link to="/boards" className="text-sm font-medium text-red-700 hover:text-red-600">
+              <Link
+                to="/boards"
+                className="text-sm font-medium text-red-700 hover:text-red-600"
+              >
                 Go back to boards list
               </Link>
             </div>
@@ -118,19 +177,21 @@ export default function BoardDetail() {
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-6">
-        <div className="flex gap-4 min-w-max">
-          {columns.map((column) => (
-            <div key={column.id} className="w-[280px]">
-              <Column column={column} onTaskClick={handleTaskClick} />
-            </div>
-          ))}
-        </div>
+      <div className="overflow-visible pb-6">
+        <DragAndDropProvider onMoveTask={handleMoveTask}>
+          <div className="flex gap-4 min-w-max">
+            {columns.map((column) => (
+              <div key={column.id} className="w-[280px]">
+                <Column column={column} onTaskClick={handleTaskClick} />
+              </div>
+            ))}
+          </div>
+        </DragAndDropProvider>
       </div>
 
-      <TaskDetail 
-        taskId={selectedTaskId} 
-        onClose={handleCloseTaskDetail} 
+      <TaskDetail
+        taskId={selectedTaskId}
+        onClose={handleCloseTaskDetail}
         onPrevTask={handlePrevTask}
         onNextTask={handleNextTask}
         hasPrevTask={hasPrevTask}

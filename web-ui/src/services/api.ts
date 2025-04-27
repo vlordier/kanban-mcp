@@ -25,3 +25,30 @@ export async function getTaskById(taskId: string): Promise<Task> {
   }
   return response.json();
 }
+
+export async function moveTask(taskId: string, targetColumnId: string, reason?: string): Promise<{
+  success: boolean;
+  message: string;
+  taskId: string;
+  sourceColumnId: string;
+  targetColumnId: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/move`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ targetColumnId, reason }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    // Handle specific error cases
+    if (response.status === 422) {
+      throw new Error(errorData.message || 'Column capacity limit reached');
+    }
+    throw new Error(errorData.error || `Failed to move task with ID ${taskId}`);
+  }
+
+  return response.json();
+}
