@@ -41,10 +41,39 @@ Replace `/path/to/repo` with the location of the cloned repo.
 
 Replace `/path/to/db` with a folder that will contain the DB files. This can be any folder with read/write access. It will be created if it doesn't exist.
 
+## Installation with Docker
+Build the Docker image:
+```sh
+docker build -t mcp/mcp-kanban .
+```
+
+Then add the MCP server configuration to the MCP client (e.g. Claude Desktop):
+```json
+"mcpServers": {
+    "kanban-mcp": {
+        "command": "docker",
+        "args": [
+            "run",
+            "--rm",
+            "-i",
+            "-v",
+            "/path/to/db:/mcp",
+            "mcp/mcp-kanban"
+        ]
+    }
+}
+```
+
+Replace `/path/to/db` with a folder that will contain the DB files. This can be any folder with read/write access. It will be created if it doesn't exist.
+
+
 ## Using the web UI
 
 Build the web-ui and web-server:
 ```sh
+npm ci --prefix shared/db
+npm run build --prefix shared/db
+
 npm ci --prefix web-ui
 npm ci --prefix web-server
 npm run build --prefix web-ui
