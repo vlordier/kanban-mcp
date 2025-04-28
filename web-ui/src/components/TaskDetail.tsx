@@ -104,7 +104,7 @@ export default function TaskDetail({
                         />
                       </div>
                       <div>
-                        <h3 className="text-md font-medium text-gray-600">Details</h3>
+                        <h3 className="text-base font-medium text-gray-600">Details</h3>
                         <dl className="mt-2 divide-y divide-gray-200 border-t border-b border-gray-200">
                           <div className="flex justify-between py-3 text-sm">
                             <dt className="text-gray-500">Created</dt>
