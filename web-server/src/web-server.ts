@@ -135,6 +135,42 @@ class WebServer {
       }
     );
 
+    // Update a task's content
+    this.server.put(
+      "/api/tasks/:taskId",
+      async (
+        request: FastifyRequest<{
+          Params: { taskId: string };
+          Body: { content: string };
+        }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const { taskId } = request.params;
+          const { content } = request.body as { content: string };
+          
+          // Check if task exists
+          const task = this.kanbanDB.getTaskById(taskId);
+          if (!task) {
+            return reply.code(404).send({ error: "Task not found" });
+          }
+          
+          // Update the task
+          const updatedTask = this.kanbanDB.updateTask(taskId, content);
+          
+          // Return success response
+          return reply.code(200).send({ 
+            success: true,
+            message: "Task updated successfully",
+            task: updatedTask
+          });
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Internal Server Error" });
+        }
+      }
+    );
+
     // Move a task to a different column
     this.server.post(
       "/api/tasks/:taskId/move",

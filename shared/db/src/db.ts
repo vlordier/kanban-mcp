@@ -337,6 +337,31 @@ export class KanbanDB {
     return findBoardsStmt.all();
   }
 
+  public updateTask(taskId: string, content: string): Task | undefined {
+    // Get the task
+    const task = this.getTaskById(taskId);
+    if (!task) {
+      return undefined;
+    }
+
+    const now = new Date().toISOString();
+
+    const updateTaskStmt = this.db.prepare<[string, string, string]>(`
+      UPDATE tasks
+      SET content = ?, updated_at = ?
+      WHERE id = ?
+    `);
+
+    updateTaskStmt.run(content, now, taskId);
+
+    // Return the updated task
+    return {
+      ...task,
+      content,
+      updated_at: now
+    };
+  }
+
   public deleteTask(taskId: string): number {
     const deleteTaskStmt = this.db.prepare<[string]>(`
       DELETE FROM tasks
