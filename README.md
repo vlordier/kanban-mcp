@@ -1,5 +1,5 @@
 # MCP Kanban
-An MCP tool set providing internal task management state for complex multi-session workflows with LLMs. This is similar to other memory MCP tools, with the additional structure, rules and visibility of a kanban-based task management system.
+An MCP tool set providing internal task management state for complex multi-session workflows with AI agents. This is similar to other memory MCP tools, with the additional structure, rules and visibility of a kanban-based task management system.
 
 The main idea is to direct the AI agent to document its work in a kanban board, both in the planning session and in execution sessions.
 
