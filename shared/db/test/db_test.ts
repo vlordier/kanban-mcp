@@ -356,6 +356,47 @@ describe("KanbanDB", () => {
     });
   });
 
+  describe("updateTask", () => {
+    it("should update a task's content", () => {
+      // Create a board with columns
+      const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
+        { name: "To Do", position: 0, wipLimit: 5 },
+      ], 0);
+
+      // Get the column ID
+      const columns = kanbanDb.getColumnsForBoard(boardId);
+      const columnId = columns[0].id;
+
+      // Add a task to the column
+      const task = kanbanDb.addTaskToColumn(
+        columnId,
+        "Test Task",
+        "Original Content"
+      );
+
+      // Update the task content
+      const newContent = "Updated Content";
+      const updatedTask = kanbanDb.updateTask(task.id, newContent);
+
+      // Verify the task was updated
+      expect(updatedTask).toBeDefined();
+      expect(updatedTask?.content).toBe(newContent);
+      expect(updatedTask?.id).toBe(task.id);
+      expect(updatedTask?.title).toBe(task.title);
+      expect(updatedTask?.column_id).toBe(task.column_id);
+      
+      // Verify the task in the database was updated
+      const retrievedTask = kanbanDb.getTaskById(task.id);
+      expect(retrievedTask?.content).toBe(newContent);
+    });
+
+    it("should return undefined if task does not exist", () => {
+      // Update a non-existent task
+      const updatedTask = kanbanDb.updateTask("nonexistent-task-id", "New Content");
+      expect(updatedTask).toBeUndefined();
+    });
+  });
+
   describe("deleteBoard", () => {
     it("should delete a board and all its related data", () => {
       // Create a board with columns

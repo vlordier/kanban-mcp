@@ -1,7 +1,8 @@
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useQuery } from '@tanstack/react-query';
-import { getTaskById } from '../services/api';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getTaskById, updateTask } from '../services/api';
 import MarkdownRenderer from './MarkdownRenderer';
 
 interface TaskDetailProps {
@@ -21,11 +22,49 @@ export default function TaskDetail({
   hasPrevTask = false, 
   hasNextTask = false 
 }: TaskDetailProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const queryClient = useQueryClient();
+
   const { data: task, isLoading, error } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => (taskId ? getTaskById(taskId) : null),
     enabled: !!taskId,
   });
+
+  // Set edit content when task data is loaded
+  useEffect(() => {
+    if (task) {
+      setEditContent(task.content);
+    }
+  }, [task]);
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ taskId, content }: { taskId: string; content: string }) => 
+      updateTask(taskId, content),
+    onSuccess: () => {
+      // Invalidate and refetch the task query to update the UI
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] as const });
+      setIsEditing(false);
+    }
+  });
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveClick = () => {
+    if (taskId) {
+      updateTaskMutation.mutate({ taskId, content: editContent });
+    }
+  };
+
+  const handleCancelClick = () => {
+    if (task) {
+      setEditContent(task.content);
+    }
+    setIsEditing(false);
+  };
 
   if (!taskId) return null;
 
@@ -44,7 +83,18 @@ export default function TaskDetail({
                       {isLoading ? 'Loading...' : error ? 'Error loading task' : task?.title}
                     </DialogTitle>
                     <div className="ml-3 flex h-7 items-center space-x-2">
-                      {onPrevTask && (
+                      {!isEditing && task && (
+                        <button
+                          type="button"
+                          onClick={handleEditClick}
+                          className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                          aria-label="Edit task"
+                        >
+                          <span className="absolute -inset-2.5" />
+                          <PencilIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                      )}
+                      {onPrevTask && !isEditing && (
                         <button
                           type="button"
                           onClick={onPrevTask}
@@ -56,7 +106,7 @@ export default function TaskDetail({
                           <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
                         </button>
                       )}
-                      {onNextTask && (
+                      {onNextTask && !isEditing && (
                         <button
                           type="button"
                           onClick={onNextTask}
@@ -70,7 +120,7 @@ export default function TaskDetail({
                       )}
                       <button
                         type="button"
-                        onClick={onClose}
+                        onClick={isEditing ? handleCancelClick : onClose}
                         className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                       >
                         <span className="absolute -inset-2.5" />
@@ -97,12 +147,50 @@ export default function TaskDetail({
                     </div>
                   ) : task ? (
                     <div className="space-y-6 flex flex-col gap-4">
-                      <div>
-                        <MarkdownRenderer 
-                          content={task.content} 
-                          className="mt-2 text-sm text-gray-900" 
-                        />
-                      </div>
+                      {isEditing ? (
+                        <div className="flex flex-col gap-4">
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            className="w-full h-64 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                          />
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              type="button"
+                              onClick={handleCancelClick}
+                              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleSaveClick}
+                              disabled={updateTaskMutation.isPending}
+                              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {updateTaskMutation.isPending ? 'Saving...' : 'Save'}
+                            </button>
+                          </div>
+                          {updateTaskMutation.isError && (
+                            <div className="bg-red-50 border-l-4 border-red-400 p-4 mt-2">
+                              <div className="flex">
+                                <div className="ml-3">
+                                  <p className="text-sm text-red-700">
+                                    Error updating task: {updateTaskMutation.error instanceof Error ? updateTaskMutation.error.message : 'Unknown error'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <MarkdownRenderer 
+                            content={task.content} 
+                            className="mt-2 text-sm text-gray-900" 
+                          />
+                        </div>
+                      )}
                       <div>
                         <h3 className="text-base font-medium text-gray-600">Details</h3>
                         <dl className="mt-2 divide-y divide-gray-200 border-t border-b border-gray-200">
