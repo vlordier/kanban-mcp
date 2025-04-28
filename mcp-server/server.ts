@@ -362,7 +362,7 @@ mcpServer.tool(
         },
         {
           type: "text",
-          text: `Board tasks:\n\n${fullTaskListString}`,
+          text: `Board tasks:\n\n${fullTaskListString}\n\nUse get-task-info to get the full content of a task.`,
         },
       ],
     };
