@@ -2,6 +2,7 @@ import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
 import { getTaskById } from '../services/api';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface TaskDetailProps {
   taskId: string | null;
@@ -79,7 +80,7 @@ export default function TaskDetail({
                     </div>
                   </div>
                 </div>
-                <div className="relative mt-6 flex-1 px-4 sm:px-6">
+                <div className="relative mt-4 flex-1 px-4 sm:px-6">
                   {isLoading ? (
                     <div className="flex justify-center items-center h-64">
                       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -95,13 +96,15 @@ export default function TaskDetail({
                       </div>
                     </div>
                   ) : task ? (
-                    <div className="space-y-6">
+                    <div className="space-y-6 flex flex-col gap-4">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500">Content</h3>
-                        <div className="mt-2 whitespace-pre-wrap text-sm text-gray-900">{task.content}</div>
+                        <MarkdownRenderer 
+                          content={task.content} 
+                          className="mt-2 text-sm text-gray-900" 
+                        />
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500">Details</h3>
+                        <h3 className="text-md font-medium text-gray-600">Details</h3>
                         <dl className="mt-2 divide-y divide-gray-200 border-t border-b border-gray-200">
                           <div className="flex justify-between py-3 text-sm">
                             <dt className="text-gray-500">Created</dt>
