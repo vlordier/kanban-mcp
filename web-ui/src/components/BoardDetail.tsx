@@ -166,7 +166,7 @@ export default function BoardDetail() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{board.name}</h2>
-            <p className="mt-1 text-sm text-gray-500">{board.goal}</p>
+            <p className="mt-1 text-base text-gray-700">{board.goal}</p>
           </div>
           <Link
             to="/boards"
