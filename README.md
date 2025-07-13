@@ -1,7 +1,7 @@
 # MCP Kanban Task Management
-An MCP tool set providing internal task management state for complex multi-session workflows with AI agents. This is similar to other memory MCP tools, with the additional structure, rules and visibility of a kanban-based task management system.
+An MCP tool set providing kanban-based task management state for AI-driven development. This is similar to other task management MCP tools, with the additional structure, rules and visibility of a kanban-based task management system.
 
-The main idea is to direct the AI agent to document and save its work in a kanban board, both in the planning session and in execution sessions.
+The main idea is to direct the AI agent to document and save its work as tasks in a kanban board, both in the planning session and in execution sessions.
 
 ## Highlights
 - Column capacity / work-in-progress limits
