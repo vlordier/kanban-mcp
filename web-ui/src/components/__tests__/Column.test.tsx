@@ -293,10 +293,12 @@ describe('Column', () => {
         ...baseColumn,
         tasks: [],
       };
-      renderColumn(emptyColumn);
+      const { container } = renderColumn(emptyColumn);
       const emptyState = screen.getByText('No tasks yet');
       expect(emptyState).toBeInTheDocument();
-      expect(emptyState).toHaveClass('text-center', 'text-sm', 'text-gray-500');
+      // The classes are now on the outermost empty state container
+      const emptyStateContainer = container.querySelector('[class*="text-center text-sm text-gray-500"]');
+      expect(emptyStateContainer).toBeInTheDocument();
     });
 
     it('applies proper empty state styling', () => {
@@ -325,7 +327,9 @@ describe('Column', () => {
         tasks: [],
       };
       renderColumn(emptyColumn);
-      expect(screen.getByText('✨ Drop task here')).toBeInTheDocument();
+      // The emoji and text are now in separate elements
+      expect(screen.getByText('✨')).toBeInTheDocument();
+      expect(screen.getByText('Drop task here')).toBeInTheDocument();
     });
 
     it('applies drop zone styling when hovering over empty column', async () => {

@@ -1,15 +1,21 @@
 import { useState, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getBoardWithColumnsAndTasks, moveTask } from "../services/api";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { getBoardWithColumnsAndTasks, moveTask, createTask } from "../services/api";
 import Column from "./Column";
 import TaskDetail from "./TaskDetail";
 import { DragAndDropProvider } from "../contexts/DragAndDropContext";
 import { useNotifications } from "./NotificationContainer";
+import { PlusIcon } from '@heroicons/react/24/outline';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 export default function BoardDetail() {
   const { boardId } = useParams<{ boardId: string }>();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
+  const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskContent, setNewTaskContent] = useState('');
   const queryClient = useQueryClient();
   const notifications = useNotifications();
 
@@ -19,12 +25,61 @@ export default function BoardDetail() {
     enabled: !!boardId,
   });
 
+  const createTaskMutation = useMutation({
+    mutationFn: ({ columnId, title, content }: { columnId: string; title: string; content: string }) =>
+      createTask(columnId, title, content),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+      setIsCreateTaskDialogOpen(false);
+      setNewTaskTitle('');
+      setNewTaskContent('');
+      setSelectedColumnId(null);
+      notifications.success('Task created successfully');
+    },
+    onError: (error) => {
+      if (error instanceof Error && error.message.includes('capacity limit')) {
+        notifications.error(
+          'Column capacity limit reached',
+          'This column has reached its maximum capacity. Complete or move existing tasks before adding new ones.'
+        );
+      } else {
+        notifications.error('Failed to create task', error instanceof Error ? error.message : 'Unknown error');
+      }
+    }
+  });
+
   const handleTaskClick = (taskId: string) => {
     setSelectedTaskId(taskId);
   };
 
   const handleCloseTaskDetail = () => {
     setSelectedTaskId(null);
+  };
+
+  const handleCreateTaskClick = (columnId: string) => {
+    setSelectedColumnId(columnId);
+    setIsCreateTaskDialogOpen(true);
+  };
+
+  const handleCreateTask = () => {
+    if (!selectedColumnId || !newTaskTitle.trim() || !newTaskContent.trim()) {
+      notifications.error('Validation error', 'Task title and content are required');
+      return;
+    }
+    createTaskMutation.mutate({
+      columnId: selectedColumnId,
+      title: newTaskTitle.trim(),
+      content: newTaskContent.trim()
+    });
+  };
+
+  const handleCreateTaskDialogClose = () => {
+    if (!createTaskMutation.isPending) {
+      setIsCreateTaskDialogOpen(false);
+      setNewTaskTitle('');
+      setNewTaskContent('');
+      setSelectedColumnId(null);
+    }
   };
 
   // Find the current column and task index
@@ -182,7 +237,11 @@ export default function BoardDetail() {
           <div className="flex gap-4 min-w-max">
             {columns.map((column) => (
               <div key={column.id} className="w-[280px]">
-                <Column column={column} onTaskClick={handleTaskClick} />
+                <Column 
+                  column={column} 
+                  onTaskClick={handleTaskClick}
+                  onCreateTaskClick={handleCreateTaskClick}
+                />
               </div>
             ))}
           </div>
@@ -197,6 +256,99 @@ export default function BoardDetail() {
         hasPrevTask={hasPrevTask}
         hasNextTask={hasNextTask}
       />
+
+      {/* Create Task Dialog */}
+      <Dialog
+        open={isCreateTaskDialogOpen}
+        onClose={handleCreateTaskDialogClose}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="mx-auto max-w-lg w-full rounded bg-white p-6 shadow-xl">
+            <DialogTitle className="text-lg font-medium text-gray-900">
+              Create New Task
+            </DialogTitle>
+            
+            {selectedColumnId && data?.columns && (
+              <p className="mt-1 text-sm text-gray-600">
+                Adding to: <span className="font-medium">
+                  {data.columns.find(col => col.id === selectedColumnId)?.name}
+                </span>
+              </p>
+            )}
+            
+            <div className="mt-4 space-y-4">
+              <div>
+                <label htmlFor="task-title" className="block text-sm font-medium text-gray-700">
+                  Task Title
+                </label>
+                <input
+                  type="text"
+                  id="task-title"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  placeholder="Enter task title..."
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  disabled={createTaskMutation.isPending}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="task-content" className="block text-sm font-medium text-gray-700">
+                  Task Description
+                </label>
+                <textarea
+                  id="task-content"
+                  value={newTaskContent}
+                  onChange={(e) => setNewTaskContent(e.target.value)}
+                  placeholder="Describe what needs to be done, why it needs to be done, and acceptance criteria..."
+                  rows={6}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  disabled={createTaskMutation.isPending}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Supports Markdown formatting
+                </p>
+              </div>
+            </div>
+
+            {createTaskMutation.isError && (
+              <div className="mt-4 bg-red-50 border-l-4 border-red-400 p-4">
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">
+                      {createTaskMutation.error instanceof Error 
+                        ? createTaskMutation.error.message 
+                        : 'Failed to create task'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                onClick={handleCreateTaskDialogClose}
+                disabled={createTaskMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleCreateTask}
+                disabled={createTaskMutation.isPending || !newTaskTitle.trim() || !newTaskContent.trim()}
+              >
+                {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
     </div>
   );
 }
