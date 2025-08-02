@@ -109,21 +109,79 @@ export default function BoardList() {
     );
   }
 
+  // Show welcome screen if no boards exist at all
+  if (boards && boards.length === 0) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="text-center py-16">
+          <div className="mx-auto max-w-md">
+            <svg className="mx-auto h-24 w-24 text-gray-300 mb-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2a2 2 0 002-2z" />
+            </svg>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to MCP Kanban!</h1>
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              Transform your project management with visual kanban boards. 
+              Organize tasks, track progress, and collaborate effectively.
+            </p>
+            <div className="space-y-4 text-left bg-gray-50 rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">✨ What you can do:</h3>
+              <div className="space-y-2 text-gray-600">
+                <div className="flex items-start space-x-2">
+                  <span className="text-indigo-600">•</span>
+                  <span>Create unlimited kanban boards for different projects</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-indigo-600">•</span>
+                  <span>Organize tasks in customizable columns (To Do, In Progress, Done)</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-indigo-600">•</span>
+                  <span>Drag and drop tasks between columns</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-indigo-600">•</span>
+                  <span>Set WIP limits to improve workflow efficiency</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-indigo-600">•</span>
+                  <span>Write detailed task descriptions with Markdown support</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="inline-flex items-center gap-x-3 rounded-xl bg-indigo-600 px-6 py-4 text-lg font-semibold text-white shadow-xl hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200 hover:shadow-2xl hover:scale-105"
+            >
+              <PlusIcon className="h-6 w-6" aria-hidden="true" />
+              Create your first board
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
-          <h1 className="text-base font-semibold text-gray-900">Kanban Boards</h1>
-          <p className="mt-1 text-sm text-gray-700">
-            {filteredBoards.length} board{filteredBoards.length !== 1 ? 's' : ''} total
-            {searchQuery && ` (filtered from ${boards?.length || 0})`}
+          <h1 className="text-2xl font-bold text-gray-900">Kanban Boards</h1>
+          <p className="mt-2 text-base text-gray-600">
+            {filteredBoards.length} board{filteredBoards.length !== 1 ? 's' : ''} 
+            {searchQuery ? (
+              <span className="ml-1">
+                found <span className="text-sm text-gray-500">(filtered from {boards?.length || 0} total)</span>
+              </span>
+            ) : (
+              <span className="text-sm text-gray-500 ml-1">• Organize your projects and tasks</span>
+            )}
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
           <button
             type="button"
             onClick={() => setIsCreateDialogOpen(true)}
-            className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200 hover:shadow-xl"
           >
             <PlusIcon className="-ml-0.5 h-5 w-5" aria-hidden="true" />
             New Board
@@ -132,22 +190,27 @@ export default function BoardList() {
       </div>
       
       {/* Search bar */}
-      <div className="mt-6">
-        <div className="relative">
+      <div className="mt-8">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
           <input
             type="text"
             placeholder="Search boards by name or goal..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="block w-full rounded-lg border-0 py-2.5 pl-10 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm transition-all duration-200"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors duration-200"
             >
-              <span className="text-sm">Clear</span>
+              <span className="text-sm font-medium">Clear</span>
             </button>
           )}
         </div>
@@ -178,33 +241,73 @@ export default function BoardList() {
               <tbody className="divide-y divide-gray-200">
                 {filteredBoards.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-sm text-gray-500">
-                      {searchQuery ? `No boards found matching "${searchQuery}"` : 'No boards yet. Create your first board!'}
+                    <td colSpan={5} className="px-3 py-16 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        {searchQuery ? (
+                          <>
+                            <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <p className="text-lg font-medium text-gray-900 mb-2">No boards found</p>
+                            <p className="text-sm text-gray-500 mb-4">No boards match "{searchQuery}". Try a different search term.</p>
+                            <button
+                              onClick={() => setSearchQuery('')}
+                              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            >
+                              Clear search
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h2a2 2 0 002-2z" />
+                            </svg>
+                            <p className="text-xl font-semibold text-gray-900 mb-2">Welcome to MCP Kanban!</p>
+                            <p className="text-base text-gray-600 mb-6 max-w-sm">
+                              Get started by creating your first kanban board to organize your projects and tasks.
+                            </p>
+                            <button
+                              onClick={() => setIsCreateDialogOpen(true)}
+                              className="inline-flex items-center gap-x-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-base font-semibold text-white shadow-lg hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-200"
+                            >
+                              <PlusIcon className="h-5 w-5" aria-hidden="true" />
+                              Create your first board
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   filteredBoards.map((board) => (
-                  <tr key={board.id}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                  <tr key={board.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold text-gray-900 sm:pl-0">
                       {board.name}
                     </td>
-                    <td className="px-3 py-4 text-sm text-gray-500 max-w-[200px] overflow-hidden text-ellipsis">{board.goal}</td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {new Date(board.created_at).toLocaleString()}
+                    <td className="px-3 py-4 text-sm text-gray-600 max-w-[300px] overflow-hidden text-ellipsis">
+                      {board.goal}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      {new Date(board.updated_at).toLocaleString()}
+                      {new Date(board.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {new Date(board.updated_at).toLocaleDateString()}
                     </td>
                     <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <Link to={`/boards/${board.id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">
-                        View<span className="sr-only">, {board.name}</span>
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteClick(board.id, board.name)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete<span className="sr-only">, {board.name}</span>
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link 
+                          to={`/boards/${board.id}`} 
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-all duration-200"
+                        >
+                          View<span className="sr-only">, {board.name}</span>
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteClick(board.id, board.name)}
+                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all duration-200"
+                        >
+                          Delete<span className="sr-only">, {board.name}</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   ))

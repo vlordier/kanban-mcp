@@ -53,26 +53,26 @@ export default function Column({ column, onTaskClick, onCreateTaskClick }: Colum
   return (
     <div 
       ref={setNodeRef}
-      className={`flex flex-col bg-white border rounded-lg shadow-sm min-w-[280px] transition-all ${isDragging ? dropIndicatorStyle : ''}`}
+      className={`flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm min-w-[300px] transition-all duration-200 hover:shadow-md ${isDragging ? dropIndicatorStyle : ''}`}
     >
-      <div className={`flex justify-between items-center p-3 border-b border-t-4 rounded-t-lg ${getColumnHeaderColor()}`}>
-        <div className="flex items-center space-x-2 flex-1">
-          <h3 className="text-sm font-semibold">{column.name}</h3>
+      <div className={`flex justify-between items-center p-4 rounded-t-xl border-b border-l-4 ${getColumnHeaderColor()}`}>
+        <div className="flex items-center space-x-3 flex-1">
+          <h3 className="text-base font-bold">{column.name}</h3>
           {onCreateTaskClick && (
             <button
               onClick={() => onCreateTaskClick(column.id)}
-              className="inline-flex items-center p-1 rounded-md text-gray-400 hover:text-indigo-600 hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-white/70 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors duration-200"
               title="Add new task"
             >
               <PlusIcon className="h-4 w-4" />
             </button>
           )}
         </div>
-        <div className="flex items-center space-x-2">
-          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-            isAtCapacity ? 'bg-red-100 text-red-700' : 
-            isNearCapacity ? 'bg-yellow-100 text-yellow-700' : 
-            'bg-white/80 text-gray-700'
+        <div className="flex items-center space-x-3">
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+            isAtCapacity ? 'bg-red-100 text-red-700 border border-red-200' : 
+            isNearCapacity ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' : 
+            'bg-gray-100 text-gray-700 border border-gray-200'
           }`}>
             {tasks.length} {column.wipLimit > 0 ? `/ ${column.wipLimit}` : ''}
           </span>
@@ -83,23 +83,37 @@ export default function Column({ column, onTaskClick, onCreateTaskClick }: Colum
           )}
         </div>
       </div>
-      <div className="overflow-visible flex-1 p-3">
+      <div className="overflow-visible flex-1 p-4">
         {tasks.length === 0 ? (
-          <div className={`p-6 text-center text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg ${isOver ? 'bg-indigo-50 border-indigo-300 text-indigo-600' : ''}`}>
+          <div className={`p-8 text-center text-sm border-2 border-dashed rounded-xl transition-all duration-200 ${
+            isOver 
+              ? 'bg-indigo-50 border-indigo-300 text-indigo-600' 
+              : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+          }`}>
             {isOver ? (
               <div className="flex flex-col items-center">
-                <span className="text-lg mb-1">✨</span>
-                <span>Drop task here</span>
+                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <span className="font-medium">Drop task here</span>
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                <span className="text-2xl mb-2 opacity-50">📋</span>
-                <span>No tasks yet</span>
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <span className="font-medium text-gray-700 mb-2">No tasks yet</span>
+                <span className="text-xs text-gray-500 mb-4">This column is ready for tasks</span>
                 {onCreateTaskClick && (
                   <button
                     onClick={() => onCreateTaskClick(column.id)}
-                    className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 underline"
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-all duration-200"
                   >
+                    <PlusIcon className="w-4 h-4 mr-2" />
                     Add the first task
                   </button>
                 )}
