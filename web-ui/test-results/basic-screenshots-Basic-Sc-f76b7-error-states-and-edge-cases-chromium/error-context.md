@@ -1,0 +1,606 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - heading "MCP Kanban" [level=1]
+  - text: ⌘K Search ESC Clear
+- main:
+  - heading "Kanban Boards" [level=1]
+  - paragraph: 65 boards total
+  - button "New Board"
+  - textbox "Search boards by name or goal..."
+  - table:
+    - rowgroup:
+      - row "Name Goal Created At Updated At Actions":
+        - columnheader "Name"
+        - columnheader "Goal"
+        - columnheader "Created At"
+        - columnheader "Updated At"
+        - columnheader "Actions"
+    - rowgroup:
+      - row "Data Analytics Project goals and objectives for Data Analytics team 8/2/2025, 7:27:11 PM 8/2/2025, 7:27:11 PM View , Data Analytics Delete , Data Analytics":
+        - cell "Data Analytics"
+        - cell "Project goals and objectives for Data Analytics team"
+        - cell "8/2/2025, 7:27:11 PM"
+        - cell "8/2/2025, 7:27:11 PM"
+        - cell "View , Data Analytics Delete , Data Analytics":
+          - link "View , Data Analytics":
+            - /url: /boards/67260eb9-d28e-4bee-ae04-ce548685f516
+          - button "Delete , Data Analytics"
+      - row "Product Management Project goals and objectives for Product Management team 8/2/2025, 7:27:10 PM 8/2/2025, 7:27:10 PM View , Product Management Delete , Product Management":
+        - cell "Product Management"
+        - cell "Project goals and objectives for Product Management team"
+        - cell "8/2/2025, 7:27:10 PM"
+        - cell "8/2/2025, 7:27:10 PM"
+        - cell "View , Product Management Delete , Product Management":
+          - link "View , Product Management":
+            - /url: /boards/1ac84133-ae4f-4903-9277-fa681f118178
+          - button "Delete , Product Management"
+      - row "User Experience Design Project goals and objectives for User Experience Design team 8/2/2025, 7:27:09 PM 8/2/2025, 7:27:09 PM View , User Experience Design Delete , User Experience Design":
+        - cell "User Experience Design"
+        - cell "Project goals and objectives for User Experience Design team"
+        - cell "8/2/2025, 7:27:09 PM"
+        - cell "8/2/2025, 7:27:09 PM"
+        - cell "View , User Experience Design Delete , User Experience Design":
+          - link "View , User Experience Design":
+            - /url: /boards/dd4af049-4a1e-44ef-9400-f50f078752dc
+          - button "Delete , User Experience Design"
+      - row "Quality Assurance Project goals and objectives for Quality Assurance team 8/2/2025, 7:27:09 PM 8/2/2025, 7:27:09 PM View , Quality Assurance Delete , Quality Assurance":
+        - cell "Quality Assurance"
+        - cell "Project goals and objectives for Quality Assurance team"
+        - cell "8/2/2025, 7:27:09 PM"
+        - cell "8/2/2025, 7:27:09 PM"
+        - cell "View , Quality Assurance Delete , Quality Assurance":
+          - link "View , Quality Assurance":
+            - /url: /boards/0f8bab66-4237-419d-9826-e7fc33cb0540
+          - button "Delete , Quality Assurance"
+      - row "DevOps & Infrastructure Project goals and objectives for DevOps & Infrastructure team 8/2/2025, 7:27:08 PM 8/2/2025, 7:27:08 PM View , DevOps & Infrastructure Delete , DevOps & Infrastructure":
+        - cell "DevOps & Infrastructure"
+        - cell "Project goals and objectives for DevOps & Infrastructure team"
+        - cell "8/2/2025, 7:27:08 PM"
+        - cell "8/2/2025, 7:27:08 PM"
+        - cell "View , DevOps & Infrastructure Delete , DevOps & Infrastructure":
+          - link "View , DevOps & Infrastructure":
+            - /url: /boards/510e4fcd-0ea6-437f-aa59-bb7d6d100ee3
+          - button "Delete , DevOps & Infrastructure"
+      - row "Mobile Application Project goals and objectives for Mobile Application team 8/2/2025, 7:27:07 PM 8/2/2025, 7:27:07 PM View , Mobile Application Delete , Mobile Application":
+        - cell "Mobile Application"
+        - cell "Project goals and objectives for Mobile Application team"
+        - cell "8/2/2025, 7:27:07 PM"
+        - cell "8/2/2025, 7:27:07 PM"
+        - cell "View , Mobile Application Delete , Mobile Application":
+          - link "View , Mobile Application":
+            - /url: /boards/1e3e582d-6965-4533-bedb-7307c370521d
+          - button "Delete , Mobile Application"
+      - row "Backend API Services Project goals and objectives for Backend API Services team 8/2/2025, 7:27:06 PM 8/2/2025, 7:27:06 PM View , Backend API Services Delete , Backend API Services":
+        - cell "Backend API Services"
+        - cell "Project goals and objectives for Backend API Services team"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "View , Backend API Services Delete , Backend API Services":
+          - link "View , Backend API Services":
+            - /url: /boards/d7a875f9-e764-4c34-9a00-ad3f044ca9f0
+          - button "Delete , Backend API Services"
+      - row "Screenshot Demo Board This board demonstrates the screenshot capabilities of our E2E testing framework 8/2/2025, 7:27:06 PM 8/2/2025, 7:27:06 PM View , Screenshot Demo Board Delete , Screenshot Demo Board":
+        - cell "Screenshot Demo Board"
+        - cell "This board demonstrates the screenshot capabilities of our E2E testing framework"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "View , Screenshot Demo Board Delete , Screenshot Demo Board":
+          - link "View , Screenshot Demo Board":
+            - /url: /boards/08ecf6dc-3b67-44e7-a06b-2d8c4f3a75df
+          - button "Delete , Screenshot Demo Board"
+      - row "Responsive Demo Testing responsive design 8/2/2025, 7:27:06 PM 8/2/2025, 7:27:06 PM View , Responsive Demo Delete , Responsive Demo":
+        - cell "Responsive Demo"
+        - cell "Testing responsive design"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "View , Responsive Demo Delete , Responsive Demo":
+          - link "View , Responsive Demo":
+            - /url: /boards/6cf1f0b0-6b65-42ba-9fb0-e80d1d9e40b1
+          - button "Delete , Responsive Demo"
+      - row "Frontend Development Project goals and objectives for Frontend Development team 8/2/2025, 7:27:06 PM 8/2/2025, 7:27:06 PM View , Frontend Development Delete , Frontend Development":
+        - cell "Frontend Development"
+        - cell "Project goals and objectives for Frontend Development team"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "8/2/2025, 7:27:06 PM"
+        - cell "View , Frontend Development Delete , Frontend Development":
+          - link "View , Frontend Development":
+            - /url: /boards/da1e8fbf-af06-419b-80de-aec99a05c705
+          - button "Delete , Frontend Development"
+      - row "Theme Testing Board Testing different color schemes and themes 8/2/2025, 7:26:07 PM 8/2/2025, 7:26:07 PM View , Theme Testing Board Delete , Theme Testing Board":
+        - cell "Theme Testing Board"
+        - cell "Testing different color schemes and themes"
+        - cell "8/2/2025, 7:26:07 PM"
+        - cell "8/2/2025, 7:26:07 PM"
+        - cell "View , Theme Testing Board Delete , Theme Testing Board":
+          - link "View , Theme Testing Board":
+            - /url: /boards/4615163a-8c09-42e8-99e3-62d0a2ad54aa
+          - button "Delete , Theme Testing Board"
+      - row "Navigation Test Board 1754155452754 Board for navigation testing 8/2/2025, 7:24:12 PM 8/2/2025, 7:24:12 PM View , Navigation Test Board 1754155452754 Delete , Navigation Test Board 1754155452754":
+        - cell "Navigation Test Board 1754155452754"
+        - cell "Board for navigation testing"
+        - cell "8/2/2025, 7:24:12 PM"
+        - cell "8/2/2025, 7:24:12 PM"
+        - cell "View , Navigation Test Board 1754155452754 Delete , Navigation Test Board 1754155452754":
+          - link "View , Navigation Test Board 1754155452754":
+            - /url: /boards/e7c14b44-b669-4774-a03a-a06ac55da793
+          - button "Delete , Navigation Test Board 1754155452754"
+      - row "Test Board E2E 1754155452424 E2E testing board for validation 8/2/2025, 7:24:12 PM 8/2/2025, 7:24:12 PM View , Test Board E2E 1754155452424 Delete , Test Board E2E 1754155452424":
+        - cell "Test Board E2E 1754155452424"
+        - cell "E2E testing board for validation"
+        - cell "8/2/2025, 7:24:12 PM"
+        - cell "8/2/2025, 7:24:12 PM"
+        - cell "View , Test Board E2E 1754155452424 Delete , Test Board E2E 1754155452424":
+          - link "View , Test Board E2E 1754155452424":
+            - /url: /boards/12d23636-463f-43ab-9770-39432f43be49
+          - button "Delete , Test Board E2E 1754155452424"
+      - row "Searchable Board 1754155452120 Board for search testing 8/2/2025, 7:24:12 PM 8/2/2025, 7:24:12 PM View , Searchable Board 1754155452120 Delete , Searchable Board 1754155452120":
+        - cell "Searchable Board 1754155452120"
+        - cell "Board for search testing"
+        - cell "8/2/2025, 7:24:12 PM"
+        - cell "8/2/2025, 7:24:12 PM"
+        - cell "View , Searchable Board 1754155452120 Delete , Searchable Board 1754155452120":
+          - link "View , Searchable Board 1754155452120":
+            - /url: /boards/78f372ab-a633-464b-ab05-9d6bd3b51527
+          - button "Delete , Searchable Board 1754155452120"
+      - row "Stress Test Board 1754155429500 Board for testing performance with many tasks 8/2/2025, 7:23:49 PM 8/2/2025, 7:23:49 PM View , Stress Test Board 1754155429500 Delete , Stress Test Board 1754155429500":
+        - cell "Stress Test Board 1754155429500"
+        - cell "Board for testing performance with many tasks"
+        - cell "8/2/2025, 7:23:49 PM"
+        - cell "8/2/2025, 7:23:49 PM"
+        - cell "View , Stress Test Board 1754155429500 Delete , Stress Test Board 1754155429500":
+          - link "View , Stress Test Board 1754155429500":
+            - /url: /boards/06e76b25-815a-46d3-b628-0aa1c4f259f1
+          - button "Delete , Stress Test Board 1754155429500"
+      - row "Stress Test Board 1754155328533 Board for testing performance with many tasks 8/2/2025, 7:22:09 PM 8/2/2025, 7:22:09 PM View , Stress Test Board 1754155328533 Delete , Stress Test Board 1754155328533":
+        - cell "Stress Test Board 1754155328533"
+        - cell "Board for testing performance with many tasks"
+        - cell "8/2/2025, 7:22:09 PM"
+        - cell "8/2/2025, 7:22:09 PM"
+        - cell "View , Stress Test Board 1754155328533 Delete , Stress Test Board 1754155328533":
+          - link "View , Stress Test Board 1754155328533":
+            - /url: /boards/015890bb-cc41-419b-9791-0c8c16f10258
+          - button "Delete , Stress Test Board 1754155328533"
+      - row "Stress Test Board 1754155283501 Board for testing performance with many tasks 8/2/2025, 7:21:23 PM 8/2/2025, 7:21:23 PM View , Stress Test Board 1754155283501 Delete , Stress Test Board 1754155283501":
+        - cell "Stress Test Board 1754155283501"
+        - cell "Board for testing performance with many tasks"
+        - cell "8/2/2025, 7:21:23 PM"
+        - cell "8/2/2025, 7:21:23 PM"
+        - cell "View , Stress Test Board 1754155283501 Delete , Stress Test Board 1754155283501":
+          - link "View , Stress Test Board 1754155283501":
+            - /url: /boards/51fbafff-36fe-42b1-9ab1-f06cf5f654f1
+          - button "Delete , Stress Test Board 1754155283501"
+      - row "DevOps Pipeline 1754155224983 Setup deployment and monitoring infrastructure 8/2/2025, 7:20:28 PM 8/2/2025, 7:20:28 PM View , DevOps Pipeline 1754155224983 Delete , DevOps Pipeline 1754155224983":
+        - cell "DevOps Pipeline 1754155224983"
+        - cell "Setup deployment and monitoring infrastructure"
+        - cell "8/2/2025, 7:20:28 PM"
+        - cell "8/2/2025, 7:20:28 PM"
+        - cell "View , DevOps Pipeline 1754155224983 Delete , DevOps Pipeline 1754155224983":
+          - link "View , DevOps Pipeline 1754155224983":
+            - /url: /boards/25b8c806-7e10-4f4e-be61-bfd3eb4f9ded
+          - button "Delete , DevOps Pipeline 1754155224983"
+      - row "Backend API 1754155224983 Develop REST API and database integration 8/2/2025, 7:20:26 PM 8/2/2025, 7:20:26 PM View , Backend API 1754155224983 Delete , Backend API 1754155224983":
+        - cell "Backend API 1754155224983"
+        - cell "Develop REST API and database integration"
+        - cell "8/2/2025, 7:20:26 PM"
+        - cell "8/2/2025, 7:20:26 PM"
+        - cell "View , Backend API 1754155224983 Delete , Backend API 1754155224983":
+          - link "View , Backend API 1754155224983":
+            - /url: /boards/46435d34-54b8-4c23-a8c0-6c5257ae5cba
+          - button "Delete , Backend API 1754155224983"
+      - row "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB 8/2/2025, 7:20:25 PM 8/2/2025, 7:20:25 PM View , AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA Delete , AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA":
+        - cell "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        - cell "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "View , AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA Delete , AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA":
+          - link "View , AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA":
+            - /url: /boards/a1a5a079-a04f-4a76-8125-32ff83a60fde
+          - button "Delete , AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      - row "Complete Project 1754155224984 Complete end-to-end project workflow test with multiple tasks and full lifecycle management 8/2/2025, 7:20:25 PM 8/2/2025, 7:20:25 PM View , Complete Project 1754155224984 Delete , Complete Project 1754155224984":
+        - cell "Complete Project 1754155224984"
+        - cell "Complete end-to-end project workflow test with multiple tasks and full lifecycle management"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "View , Complete Project 1754155224984 Delete , Complete Project 1754155224984":
+          - link "View , Complete Project 1754155224984":
+            - /url: /boards/18df2488-2776-4386-939e-56e11381619d
+          - button "Delete , Complete Project 1754155224984"
+      - row "Frontend Development 1754155224983 Build user interface components and pages 8/2/2025, 7:20:25 PM 8/2/2025, 7:20:25 PM View , Frontend Development 1754155224983 Delete , Frontend Development 1754155224983":
+        - cell "Frontend Development 1754155224983"
+        - cell "Build user interface components and pages"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "View , Frontend Development 1754155224983 Delete , Frontend Development 1754155224983":
+          - link "View , Frontend Development 1754155224983":
+            - /url: /boards/7c33e236-032c-4a98-b7b5-dc884111a9cc
+          - button "Delete , Frontend Development 1754155224983"
+      - row "Stress Test Board 1754155224984 Board for testing performance with many tasks 8/2/2025, 7:20:25 PM 8/2/2025, 7:20:25 PM View , Stress Test Board 1754155224984 Delete , Stress Test Board 1754155224984":
+        - cell "Stress Test Board 1754155224984"
+        - cell "Board for testing performance with many tasks"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "8/2/2025, 7:20:25 PM"
+        - cell "View , Stress Test Board 1754155224984 Delete , Stress Test Board 1754155224984":
+          - link "View , Stress Test Board 1754155224984":
+            - /url: /boards/a680583d-cd4b-4e43-8b3f-101a776f846b
+          - button "Delete , Stress Test Board 1754155224984"
+      - row "Task Test Board 1754154465191 Board for testing task operations 8/2/2025, 7:07:45 PM 8/2/2025, 7:07:45 PM View , Task Test Board 1754154465191 Delete , Task Test Board 1754154465191":
+        - cell "Task Test Board 1754154465191"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:45 PM"
+        - cell "8/2/2025, 7:07:45 PM"
+        - cell "View , Task Test Board 1754154465191 Delete , Task Test Board 1754154465191":
+          - link "View , Task Test Board 1754154465191":
+            - /url: /boards/2edfc800-47ea-4171-9c8d-9674daca8a69
+          - button "Delete , Task Test Board 1754154465191"
+      - row "Task Test Board 1754154465131 Board for testing task operations 8/2/2025, 7:07:45 PM 8/2/2025, 7:07:45 PM View , Task Test Board 1754154465131 Delete , Task Test Board 1754154465131":
+        - cell "Task Test Board 1754154465131"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:45 PM"
+        - cell "8/2/2025, 7:07:45 PM"
+        - cell "View , Task Test Board 1754154465131 Delete , Task Test Board 1754154465131":
+          - link "View , Task Test Board 1754154465131":
+            - /url: /boards/379d9984-cbed-4c04-9091-cd7a3068ee4e
+          - button "Delete , Task Test Board 1754154465131"
+      - row "Task Test Board 1754154464431 Board for testing task operations 8/2/2025, 7:07:44 PM 8/2/2025, 7:07:44 PM View , Task Test Board 1754154464431 Delete , Task Test Board 1754154464431":
+        - cell "Task Test Board 1754154464431"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:44 PM"
+        - cell "8/2/2025, 7:07:44 PM"
+        - cell "View , Task Test Board 1754154464431 Delete , Task Test Board 1754154464431":
+          - link "View , Task Test Board 1754154464431":
+            - /url: /boards/ea322496-8198-4274-9cc3-b659f70da350
+          - button "Delete , Task Test Board 1754154464431"
+      - row "Task Test Board 1754154464403 Board for testing task operations 8/2/2025, 7:07:44 PM 8/2/2025, 7:07:44 PM View , Task Test Board 1754154464403 Delete , Task Test Board 1754154464403":
+        - cell "Task Test Board 1754154464403"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:44 PM"
+        - cell "8/2/2025, 7:07:44 PM"
+        - cell "View , Task Test Board 1754154464403 Delete , Task Test Board 1754154464403":
+          - link "View , Task Test Board 1754154464403":
+            - /url: /boards/20c6615b-6196-4b6a-a168-a986ca4d6d53
+          - button "Delete , Task Test Board 1754154464403"
+      - row "Task Test Board 1754154463688 Board for testing task operations 8/2/2025, 7:07:43 PM 8/2/2025, 7:07:43 PM View , Task Test Board 1754154463688 Delete , Task Test Board 1754154463688":
+        - cell "Task Test Board 1754154463688"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:43 PM"
+        - cell "8/2/2025, 7:07:43 PM"
+        - cell "View , Task Test Board 1754154463688 Delete , Task Test Board 1754154463688":
+          - link "View , Task Test Board 1754154463688":
+            - /url: /boards/24659a61-52b1-4748-9aea-58eb64ad2e2f
+          - button "Delete , Task Test Board 1754154463688"
+      - row "Task Test Board 1754154462420 Board for testing task operations 8/2/2025, 7:07:42 PM 8/2/2025, 7:07:42 PM View , Task Test Board 1754154462420 Delete , Task Test Board 1754154462420":
+        - cell "Task Test Board 1754154462420"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:42 PM"
+        - cell "8/2/2025, 7:07:42 PM"
+        - cell "View , Task Test Board 1754154462420 Delete , Task Test Board 1754154462420":
+          - link "View , Task Test Board 1754154462420":
+            - /url: /boards/54b8f3eb-ba07-45d6-a720-440ea9eed322
+          - button "Delete , Task Test Board 1754154462420"
+      - row "Task Test Board 1754154462313 Board for testing task operations 8/2/2025, 7:07:42 PM 8/2/2025, 7:07:42 PM View , Task Test Board 1754154462313 Delete , Task Test Board 1754154462313":
+        - cell "Task Test Board 1754154462313"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:42 PM"
+        - cell "8/2/2025, 7:07:42 PM"
+        - cell "View , Task Test Board 1754154462313 Delete , Task Test Board 1754154462313":
+          - link "View , Task Test Board 1754154462313":
+            - /url: /boards/ecd40feb-dc94-4a72-ab95-b28599918d5d
+          - button "Delete , Task Test Board 1754154462313"
+      - row "Task Test Board 1754154462235 Board for testing task operations 8/2/2025, 7:07:42 PM 8/2/2025, 7:07:42 PM View , Task Test Board 1754154462235 Delete , Task Test Board 1754154462235":
+        - cell "Task Test Board 1754154462235"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:42 PM"
+        - cell "8/2/2025, 7:07:42 PM"
+        - cell "View , Task Test Board 1754154462235 Delete , Task Test Board 1754154462235":
+          - link "View , Task Test Board 1754154462235":
+            - /url: /boards/eff3c9bf-8f65-4607-8be2-b363de32e9eb
+          - button "Delete , Task Test Board 1754154462235"
+      - row "Task Test Board 1754154461593 Board for testing task operations 8/2/2025, 7:07:41 PM 8/2/2025, 7:07:41 PM View , Task Test Board 1754154461593 Delete , Task Test Board 1754154461593":
+        - cell "Task Test Board 1754154461593"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:41 PM"
+        - cell "8/2/2025, 7:07:41 PM"
+        - cell "View , Task Test Board 1754154461593 Delete , Task Test Board 1754154461593":
+          - link "View , Task Test Board 1754154461593":
+            - /url: /boards/19dfb8bc-79d8-427b-b171-ba26f407d006
+          - button "Delete , Task Test Board 1754154461593"
+      - row "Task Test Board 1754154461529 Board for testing task operations 8/2/2025, 7:07:41 PM 8/2/2025, 7:07:41 PM View , Task Test Board 1754154461529 Delete , Task Test Board 1754154461529":
+        - cell "Task Test Board 1754154461529"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:41 PM"
+        - cell "8/2/2025, 7:07:41 PM"
+        - cell "View , Task Test Board 1754154461529 Delete , Task Test Board 1754154461529":
+          - link "View , Task Test Board 1754154461529":
+            - /url: /boards/30b5b888-f39e-496e-984d-9ace685564dd
+          - button "Delete , Task Test Board 1754154461529"
+      - row "Task Test Board 1754154461346 Board for testing task operations 8/2/2025, 7:07:41 PM 8/2/2025, 7:07:41 PM View , Task Test Board 1754154461346 Delete , Task Test Board 1754154461346":
+        - cell "Task Test Board 1754154461346"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:41 PM"
+        - cell "8/2/2025, 7:07:41 PM"
+        - cell "View , Task Test Board 1754154461346 Delete , Task Test Board 1754154461346":
+          - link "View , Task Test Board 1754154461346":
+            - /url: /boards/d6e1bf55-2e60-4738-ba35-f3b9af0c8354
+          - button "Delete , Task Test Board 1754154461346"
+      - row "Navigation Test Board 1754154460182 Board for navigation testing 8/2/2025, 7:07:40 PM 8/2/2025, 7:07:40 PM View , Navigation Test Board 1754154460182 Delete , Navigation Test Board 1754154460182":
+        - cell "Navigation Test Board 1754154460182"
+        - cell "Board for navigation testing"
+        - cell "8/2/2025, 7:07:40 PM"
+        - cell "8/2/2025, 7:07:40 PM"
+        - cell "View , Navigation Test Board 1754154460182 Delete , Navigation Test Board 1754154460182":
+          - link "View , Navigation Test Board 1754154460182":
+            - /url: /boards/6881e98c-1311-4e67-8032-9b05a8c8ad99
+          - button "Delete , Navigation Test Board 1754154460182"
+      - row "Searchable Board 1754154458559 Board for search testing 8/2/2025, 7:07:38 PM 8/2/2025, 7:07:38 PM View , Searchable Board 1754154458559 Delete , Searchable Board 1754154458559":
+        - cell "Searchable Board 1754154458559"
+        - cell "Board for search testing"
+        - cell "8/2/2025, 7:07:38 PM"
+        - cell "8/2/2025, 7:07:38 PM"
+        - cell "View , Searchable Board 1754154458559 Delete , Searchable Board 1754154458559":
+          - link "View , Searchable Board 1754154458559":
+            - /url: /boards/a7a824f3-0e94-4ead-9fe4-2d523e6d8376
+          - button "Delete , Searchable Board 1754154458559"
+      - row "Test Board E2E 1754154458640 E2E testing board for validation 8/2/2025, 7:07:38 PM 8/2/2025, 7:07:38 PM View , Test Board E2E 1754154458640 Delete , Test Board E2E 1754154458640":
+        - cell "Test Board E2E 1754154458640"
+        - cell "E2E testing board for validation"
+        - cell "8/2/2025, 7:07:38 PM"
+        - cell "8/2/2025, 7:07:38 PM"
+        - cell "View , Test Board E2E 1754154458640 Delete , Test Board E2E 1754154458640":
+          - link "View , Test Board E2E 1754154458640":
+            - /url: /boards/ace5dcbc-f18e-434c-9984-b6f68df3dfd4
+          - button "Delete , Test Board E2E 1754154458640"
+      - row "Contrast Test Board Testing color contrast 8/2/2025, 7:07:35 PM 8/2/2025, 7:07:35 PM View , Contrast Test Board Delete , Contrast Test Board":
+        - cell "Contrast Test Board"
+        - cell "Testing color contrast"
+        - cell "8/2/2025, 7:07:35 PM"
+        - cell "8/2/2025, 7:07:35 PM"
+        - cell "View , Contrast Test Board Delete , Contrast Test Board":
+          - link "View , Contrast Test Board":
+            - /url: /boards/30fcf7a0-5c9c-43de-9dbb-0e0f2ccb52cc
+          - button "Delete , Contrast Test Board"
+      - row "Mobile Test Board Testing mobile responsiveness 8/2/2025, 7:07:35 PM 8/2/2025, 7:07:35 PM View , Mobile Test Board Delete , Mobile Test Board":
+        - cell "Mobile Test Board"
+        - cell "Testing mobile responsiveness"
+        - cell "8/2/2025, 7:07:35 PM"
+        - cell "8/2/2025, 7:07:35 PM"
+        - cell "View , Mobile Test Board Delete , Mobile Test Board":
+          - link "View , Mobile Test Board":
+            - /url: /boards/6ad839a5-4d52-46ad-ad5b-b45252b27c51
+          - button "Delete , Mobile Test Board"
+      - row "Task Test Board 1754154447077 Board for testing task operations 8/2/2025, 7:07:27 PM 8/2/2025, 7:07:27 PM View , Task Test Board 1754154447077 Delete , Task Test Board 1754154447077":
+        - cell "Task Test Board 1754154447077"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:27 PM"
+        - cell "8/2/2025, 7:07:27 PM"
+        - cell "View , Task Test Board 1754154447077 Delete , Task Test Board 1754154447077":
+          - link "View , Task Test Board 1754154447077":
+            - /url: /boards/e5618f1c-0ca8-4631-a071-88ab2a4dac9d
+          - button "Delete , Task Test Board 1754154447077"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:04 PM 8/2/2025, 7:07:04 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/6cbb6144-999e-4885-a3bc-2e47cf073972
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:04 PM 8/2/2025, 7:07:04 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/9e1bab20-7eec-40c1-8b4f-e36cd8e684a1
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:04 PM 8/2/2025, 7:07:04 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/110b1d36-7127-4a71-a030-84eaac2ea4bc
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:04 PM 8/2/2025, 7:07:04 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/a9a9d8cb-ea3a-4cf4-a381-a7524e509ebb
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:04 PM 8/2/2025, 7:07:04 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "8/2/2025, 7:07:04 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/d01c089d-1352-4a9e-b341-1dfba99b0707
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:02 PM 8/2/2025, 7:07:02 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/dfff4944-f1a4-428c-b221-dbb8486574b8
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:02 PM 8/2/2025, 7:07:02 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/43f37d65-6c5b-4dd1-b2b5-490eab1e71f9
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:02 PM 8/2/2025, 7:07:02 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/19ad296a-33ff-4f78-b8f7-492050ba1e6b
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:02 PM 8/2/2025, 7:07:02 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/a15be6dd-9a2e-4fe4-bd58-dc1883fe5687
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:02 PM 8/2/2025, 7:07:02 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/5a203d2a-fbed-4e59-bceb-c713bca6ae3f
+          - button "Delete , Task Test Board"
+      - row "Task Test Board Board for testing task operations 8/2/2025, 7:07:02 PM 8/2/2025, 7:07:02 PM View , Task Test Board Delete , Task Test Board":
+        - cell "Task Test Board"
+        - cell "Board for testing task operations"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "8/2/2025, 7:07:02 PM"
+        - cell "View , Task Test Board Delete , Task Test Board":
+          - link "View , Task Test Board":
+            - /url: /boards/14483940-fcb9-4005-852f-c21beae93a26
+          - button "Delete , Task Test Board"
+      - row "Navigation Test Board 1754154413359 Board for navigation testing 8/2/2025, 7:06:53 PM 8/2/2025, 7:06:53 PM View , Navigation Test Board 1754154413359 Delete , Navigation Test Board 1754154413359":
+        - cell "Navigation Test Board 1754154413359"
+        - cell "Board for navigation testing"
+        - cell "8/2/2025, 7:06:53 PM"
+        - cell "8/2/2025, 7:06:53 PM"
+        - cell "View , Navigation Test Board 1754154413359 Delete , Navigation Test Board 1754154413359":
+          - link "View , Navigation Test Board 1754154413359":
+            - /url: /boards/f3b4a45e-9213-43c1-8261-b570ef5ac6a3
+          - button "Delete , Navigation Test Board 1754154413359"
+      - row "Test Board E2E 1754154413118 E2E testing board for validation 8/2/2025, 7:06:53 PM 8/2/2025, 7:06:53 PM View , Test Board E2E 1754154413118 Delete , Test Board E2E 1754154413118":
+        - cell "Test Board E2E 1754154413118"
+        - cell "E2E testing board for validation"
+        - cell "8/2/2025, 7:06:53 PM"
+        - cell "8/2/2025, 7:06:53 PM"
+        - cell "View , Test Board E2E 1754154413118 Delete , Test Board E2E 1754154413118":
+          - link "View , Test Board E2E 1754154413118":
+            - /url: /boards/5e7b8d83-0574-4f8b-ad1d-6618716b69fd
+          - button "Delete , Test Board E2E 1754154413118"
+      - row "Searchable Board 1754154412908 Board for search testing 8/2/2025, 7:06:53 PM 8/2/2025, 7:06:53 PM View , Searchable Board 1754154412908 Delete , Searchable Board 1754154412908":
+        - cell "Searchable Board 1754154412908"
+        - cell "Board for search testing"
+        - cell "8/2/2025, 7:06:53 PM"
+        - cell "8/2/2025, 7:06:53 PM"
+        - cell "View , Searchable Board 1754154412908 Delete , Searchable Board 1754154412908":
+          - link "View , Searchable Board 1754154412908":
+            - /url: /boards/201d1232-a159-46e4-b7e2-322549177010
+          - button "Delete , Searchable Board 1754154412908"
+      - row "Navigation Test Board 1754154339302 Board for navigation testing 8/2/2025, 7:05:39 PM 8/2/2025, 7:05:39 PM View , Navigation Test Board 1754154339302 Delete , Navigation Test Board 1754154339302":
+        - cell "Navigation Test Board 1754154339302"
+        - cell "Board for navigation testing"
+        - cell "8/2/2025, 7:05:39 PM"
+        - cell "8/2/2025, 7:05:39 PM"
+        - cell "View , Navigation Test Board 1754154339302 Delete , Navigation Test Board 1754154339302":
+          - link "View , Navigation Test Board 1754154339302":
+            - /url: /boards/327097cc-f16a-4ae3-9cc5-61ad5f314220
+          - button "Delete , Navigation Test Board 1754154339302"
+      - row "Test Board E2E 1754154339008 E2E testing board for validation 8/2/2025, 7:05:39 PM 8/2/2025, 7:05:39 PM View , Test Board E2E 1754154339008 Delete , Test Board E2E 1754154339008":
+        - cell "Test Board E2E 1754154339008"
+        - cell "E2E testing board for validation"
+        - cell "8/2/2025, 7:05:39 PM"
+        - cell "8/2/2025, 7:05:39 PM"
+        - cell "View , Test Board E2E 1754154339008 Delete , Test Board E2E 1754154339008":
+          - link "View , Test Board E2E 1754154339008":
+            - /url: /boards/2ea52599-c73d-45f9-9ffd-6c0aa4dcf092
+          - button "Delete , Test Board E2E 1754154339008"
+      - row "Searchable Board 1754154338691 Board for search testing 8/2/2025, 7:05:39 PM 8/2/2025, 7:05:39 PM View , Searchable Board 1754154338691 Delete , Searchable Board 1754154338691":
+        - cell "Searchable Board 1754154338691"
+        - cell "Board for search testing"
+        - cell "8/2/2025, 7:05:39 PM"
+        - cell "8/2/2025, 7:05:39 PM"
+        - cell "View , Searchable Board 1754154338691 Delete , Searchable Board 1754154338691":
+          - link "View , Searchable Board 1754154338691":
+            - /url: /boards/21f101dc-3fab-475c-afad-960dcaeaf62c
+          - button "Delete , Searchable Board 1754154338691"
+      - row "Navigation Test Board Board for navigation testing 8/2/2025, 7:04:09 PM 8/2/2025, 7:04:09 PM View , Navigation Test Board Delete , Navigation Test Board":
+        - cell "Navigation Test Board"
+        - cell "Board for navigation testing"
+        - cell "8/2/2025, 7:04:09 PM"
+        - cell "8/2/2025, 7:04:09 PM"
+        - cell "View , Navigation Test Board Delete , Navigation Test Board":
+          - link "View , Navigation Test Board":
+            - /url: /boards/345ccd90-48a2-4297-b4cc-f8105cb96e27
+          - button "Delete , Navigation Test Board"
+      - row "Board to Delete Board that will be deleted 8/2/2025, 7:04:08 PM 8/2/2025, 7:04:08 PM View , Board to Delete Delete , Board to Delete":
+        - cell "Board to Delete"
+        - cell "Board that will be deleted"
+        - cell "8/2/2025, 7:04:08 PM"
+        - cell "8/2/2025, 7:04:08 PM"
+        - cell "View , Board to Delete Delete , Board to Delete":
+          - link "View , Board to Delete":
+            - /url: /boards/27b6ca06-bd13-4930-9d12-b07e671a0efa
+          - button "Delete , Board to Delete"
+      - row "Searchable Board Board for search testing 8/2/2025, 7:04:08 PM 8/2/2025, 7:04:08 PM View , Searchable Board Delete , Searchable Board":
+        - cell "Searchable Board"
+        - cell "Board for search testing"
+        - cell "8/2/2025, 7:04:08 PM"
+        - cell "8/2/2025, 7:04:08 PM"
+        - cell "View , Searchable Board Delete , Searchable Board":
+          - link "View , Searchable Board":
+            - /url: /boards/fdb7be4e-12c5-4344-b60c-8e225496ceb4
+          - button "Delete , Searchable Board"
+      - row "Test Board E2E E2E testing board for validation 8/2/2025, 7:04:08 PM 8/2/2025, 7:04:08 PM View , Test Board E2E Delete , Test Board E2E":
+        - cell "Test Board E2E"
+        - cell "E2E testing board for validation"
+        - cell "8/2/2025, 7:04:08 PM"
+        - cell "8/2/2025, 7:04:08 PM"
+        - cell "View , Test Board E2E Delete , Test Board E2E":
+          - link "View , Test Board E2E":
+            - /url: /boards/a6f01894-454a-44a6-8a67-0934a7ee5b67
+          - button "Delete , Test Board E2E"
+      - row "Board to Delete Board that will be deleted 8/2/2025, 7:03:19 PM 8/2/2025, 7:03:19 PM View , Board to Delete Delete , Board to Delete":
+        - cell "Board to Delete"
+        - cell "Board that will be deleted"
+        - cell "8/2/2025, 7:03:19 PM"
+        - cell "8/2/2025, 7:03:19 PM"
+        - cell "View , Board to Delete Delete , Board to Delete":
+          - link "View , Board to Delete":
+            - /url: /boards/af82bec4-a6f8-4605-bf42-faf9b9d8548b
+          - button "Delete , Board to Delete"
+      - row "Navigation Test Board Board for navigation testing 8/2/2025, 7:03:18 PM 8/2/2025, 7:03:18 PM View , Navigation Test Board Delete , Navigation Test Board":
+        - cell "Navigation Test Board"
+        - cell "Board for navigation testing"
+        - cell "8/2/2025, 7:03:18 PM"
+        - cell "8/2/2025, 7:03:18 PM"
+        - cell "View , Navigation Test Board Delete , Navigation Test Board":
+          - link "View , Navigation Test Board":
+            - /url: /boards/87915454-392c-48b1-aa05-5b255b45344b
+          - button "Delete , Navigation Test Board"
+      - row "Test Board E2E E2E testing board for validation 8/2/2025, 7:03:18 PM 8/2/2025, 7:03:18 PM View , Test Board E2E Delete , Test Board E2E":
+        - cell "Test Board E2E"
+        - cell "E2E testing board for validation"
+        - cell "8/2/2025, 7:03:18 PM"
+        - cell "8/2/2025, 7:03:18 PM"
+        - cell "View , Test Board E2E Delete , Test Board E2E":
+          - link "View , Test Board E2E":
+            - /url: /boards/d6c88109-5c04-4113-aa52-01bd9d1c4786
+          - button "Delete , Test Board E2E"
+      - row "Searchable Board Board for search testing 8/2/2025, 7:03:18 PM 8/2/2025, 7:03:18 PM View , Searchable Board Delete , Searchable Board":
+        - cell "Searchable Board"
+        - cell "Board for search testing"
+        - cell "8/2/2025, 7:03:18 PM"
+        - cell "8/2/2025, 7:03:18 PM"
+        - cell "View , Searchable Board Delete , Searchable Board":
+          - link "View , Searchable Board":
+            - /url: /boards/ceec32aa-fb76-4ee7-8129-85a5d0d617ab
+          - button "Delete , Searchable Board"
+```
