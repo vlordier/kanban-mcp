@@ -1,8 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi, waitForPageLoad } from '../setup/test-helpers';
 
 test.describe('Board Management UX', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mock API routes
+    await setupMockApi(page);
+    
+    // Navigate to the app
     await page.goto('/');
+    await waitForPageLoad(page);
   });
 
   test('should display board list page with proper layout', async ({ page }) => {

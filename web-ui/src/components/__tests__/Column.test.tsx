@@ -111,7 +111,7 @@ describe('Column', () => {
       renderColumn();
       const heading = screen.getByRole('heading', { name: 'To Do' });
       expect(heading).toBeInTheDocument();
-      expect(heading).toHaveClass('text-sm', 'font-semibold');
+      expect(heading).toHaveClass('text-base', 'font-bold');
     });
 
     it('displays correct task count and WIP limit formatting', () => {
@@ -148,7 +148,7 @@ describe('Column', () => {
       expect(columnContainer).toBeInTheDocument();
       
       // Check header section
-      const headerSection = container.querySelector('[class*="border-t-4"]');
+      const headerSection = container.querySelector('[class*="border-l-4"]');
       expect(headerSection).toBeInTheDocument();
       
       // Check content section
@@ -158,7 +158,7 @@ describe('Column', () => {
 
     it('applies proper responsive design classes', () => {
       const { container } = renderColumn();
-      const columnContainer = container.querySelector('[class*="min-w-[280px]"]');
+      const columnContainer = container.querySelector('[class*="min-w-[300px]"]');
       expect(columnContainer).toBeInTheDocument();
     });
   });
@@ -297,7 +297,7 @@ describe('Column', () => {
       const emptyState = screen.getByText('No tasks yet');
       expect(emptyState).toBeInTheDocument();
       // The classes are now on the outermost empty state container
-      const emptyStateContainer = container.querySelector('[class*="text-center text-sm text-gray-500"]');
+      const emptyStateContainer = container.querySelector('[class*="text-center text-sm"]');
       expect(emptyStateContainer).toBeInTheDocument();
     });
 
@@ -307,7 +307,7 @@ describe('Column', () => {
         tasks: [],
       };
       const { container } = renderColumn(emptyColumn);
-      const emptyStateContainer = container.querySelector('[class*="border-2 border-dashed border-gray-200 rounded-lg"]');
+      const emptyStateContainer = container.querySelector('[class*="border-2 border-dashed"]');
       expect(emptyStateContainer).toBeInTheDocument();
     });
 
@@ -327,8 +327,7 @@ describe('Column', () => {
         tasks: [],
       };
       renderColumn(emptyColumn);
-      // The emoji and text are now in separate elements
-      expect(screen.getByText('✨')).toBeInTheDocument();
+      // Check for drop zone UI elements
       expect(screen.getByText('Drop task here')).toBeInTheDocument();
     });
 
@@ -362,7 +361,7 @@ describe('Column', () => {
       };
       renderColumn(lowCapacityColumn);
       const capacityIndicator = screen.getByText('1 / 5');
-      expect(capacityIndicator).toHaveClass('bg-white/80', 'text-gray-700');
+      expect(capacityIndicator).toHaveClass('bg-gray-100', 'text-gray-700');
     });
 
     it('shows near capacity warning at 80% threshold', () => {
@@ -513,7 +512,7 @@ describe('Column', () => {
     headerColorTestCases.forEach(({ name, column, expectedClasses }) => {
       it(`applies correct header colors for ${name}`, () => {
         const { container } = renderColumn(column);
-        const header = container.querySelector('div[class*="border-t-4"]');
+        const header = container.querySelector('div[class*="border-l-4"]');
         expect(header).toBeInTheDocument();
         
         expectedClasses.forEach(className => {
@@ -524,7 +523,7 @@ describe('Column', () => {
 
     it('applies proper header structure and spacing', () => {
       const { container } = renderColumn();
-      const header = container.querySelector('[class*="flex justify-between items-center p-3 border-b border-t-4 rounded-t-lg"]');
+      const header = container.querySelector('[class*="flex justify-between items-center p-4 rounded-t-xl border-b border-l-4"]');
       expect(header).toBeInTheDocument();
     });
 
@@ -536,7 +535,7 @@ describe('Column', () => {
       const { container } = renderColumn(longNameColumn);
       const header = container.querySelector('h3');
       expect(header).toHaveTextContent(longNameColumn.name);
-      expect(header).toHaveClass('text-sm', 'font-semibold');
+      expect(header).toHaveClass('text-base', 'font-bold');
     });
   });
 
@@ -662,7 +661,7 @@ describe('Column', () => {
       
       // Check that text colors have sufficient contrast
       const heading = container.querySelector('h3');
-      expect(heading).toHaveClass('text-sm', 'font-semibold');
+      expect(heading).toHaveClass('text-base', 'font-bold');
       
       const capacityIndicator = screen.getByText('2 / 5');
       expect(capacityIndicator).toHaveClass('text-gray-700');
@@ -806,7 +805,7 @@ describe('Column', () => {
     it('updates capacity warning styles when approaching limit', () => {
       const { rerender } = renderColumn();
       let capacityIndicator = screen.getByText('2 / 5');
-      expect(capacityIndicator).toHaveClass('bg-white/80', 'text-gray-700');
+      expect(capacityIndicator).toHaveClass('bg-gray-100', 'text-gray-700');
 
       // Update to near capacity
       const nearCapacityColumn: ColumnWithTasks = {

@@ -6,7 +6,6 @@ import Column from "./Column";
 import TaskDetail from "./TaskDetail";
 import { DragAndDropProvider } from "../contexts/DragAndDropContext";
 import { useNotifications } from "./NotificationContainer";
-import { PlusIcon } from '@heroicons/react/24/outline';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 
 export default function BoardDetail() {

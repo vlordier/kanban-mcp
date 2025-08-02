@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi, waitForPageLoad } from '../setup/test-helpers';
 
 test.describe('Basic Functionality Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3001');
-    await page.waitForSelector('h1:has-text("Kanban Boards")');
+    // Setup mock API routes
+    await setupMockApi(page);
+    
+    // Navigate to the app
+    await page.goto('/');
+    await waitForPageLoad(page);
   });
 
   test('loads the application successfully', async ({ page }) => {
@@ -19,15 +24,15 @@ test.describe('Basic Functionality Tests', () => {
   });
 
   test('can create a new board', async ({ page }) => {
-    // Create a board
+    // Create a board with unique name
     await page.click('button:has-text("New Board")');
-    await page.fill('input#board-name', 'Test Board');
-    await page.fill('textarea#board-goal', 'Testing board creation');
+    await page.fill('input#board-name', 'My New Board');
+    await page.fill('textarea#board-goal', 'Testing board creation functionality');
     await page.click('button:has-text("Create Board")');
     
     // Verify board appears
-    await expect(page.locator('text=Test Board')).toBeVisible();
-    await expect(page.locator('text=Testing board creation')).toBeVisible();
+    await expect(page.locator('text=My New Board')).toBeVisible();
+    await expect(page.locator('text=Testing board creation functionality')).toBeVisible();
     
     // Take screenshot
     await page.screenshot({
@@ -58,8 +63,8 @@ test.describe('Basic Functionality Tests', () => {
     // Click to open notifications
     await page.click('button[title="Notifications"]');
     
-    // Should show notification panel or text
-    await expect(page.locator('text=Recent Activity')).toBeVisible();
+    // Should show notification panel header
+    await expect(page.locator('h3:has-text("Notifications")')).toBeVisible();
     
     // Take screenshot
     await page.screenshot({

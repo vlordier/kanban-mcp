@@ -24,7 +24,7 @@ export default function BoardList() {
   const notifications = useNotifications();
   
   // Enable real-time updates
-  const { lastUpdate, isPolling } = useRealTimeUpdates();
+  useRealTimeUpdates();
   
   const { data: boards, isLoading, error } = useQuery({
     queryKey: ['boards'],
