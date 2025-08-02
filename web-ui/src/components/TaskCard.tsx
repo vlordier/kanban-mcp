@@ -50,8 +50,10 @@ export default function TaskCard({ task, column, isMoving = false }: TaskCardPro
   };
 
   // Calculate days since last update for urgency indication
-  const daysSinceUpdate = Math.floor((Date.now() - new Date(task.updatedAt).getTime()) / (1000 * 60 * 60 * 24));
-  const isStale = daysSinceUpdate > 7;
+  const updatedAtTime = new Date(task.updatedAt).getTime();
+  const currentTime = Date.now();
+  const daysSinceUpdate = Math.floor((currentTime - updatedAtTime) / (1000 * 60 * 60 * 24));
+  const isStale = !isNaN(updatedAtTime) && currentTime > updatedAtTime && daysSinceUpdate > 7;
   
   return (
     <div 
