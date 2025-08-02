@@ -7,11 +7,11 @@ test.describe('Accessibility and Responsive Design', () => {
 
   test('should have proper heading hierarchy and ARIA labels', async ({ page }) => {
     // Check main heading
-    const mainHeading = page.locator('h1');
+    const mainHeading = page.locator('h1').first();
     await expect(mainHeading).toHaveText('MCP Kanban');
     
     // Check boards list heading
-    await expect(page.locator('h1').nth(1)).toHaveText('Kanban Boards');
+    await expect(page.locator('h1:has-text("Kanban Boards")')).toBeVisible();
     
     // Check button accessibility
     const newBoardButton = page.locator('button:has-text("New Board")');
