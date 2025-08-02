@@ -41,9 +41,12 @@ export default function Column({ column, onTaskClick }: ColumnProps) {
     return 'bg-gray-100 border-gray-200 text-gray-800';
   };
 
+  // Safely handle tasks array (guard against null/undefined)
+  const tasks = column.tasks || [];
+  
   // Check if column is at or near capacity
-  const isNearCapacity = column.wipLimit > 0 && column.tasks.length >= column.wipLimit * 0.8;
-  const isAtCapacity = column.wipLimit > 0 && column.tasks.length >= column.wipLimit;
+  const isNearCapacity = column.wipLimit > 0 && tasks.length >= column.wipLimit * 0.8;
+  const isAtCapacity = column.wipLimit > 0 && tasks.length >= column.wipLimit;
 
   return (
     <div 
@@ -58,7 +61,7 @@ export default function Column({ column, onTaskClick }: ColumnProps) {
             isNearCapacity ? 'bg-yellow-100 text-yellow-700' : 
             'bg-white/80 text-gray-700'
           }`}>
-            {column.tasks.length} {column.wipLimit > 0 ? `/ ${column.wipLimit}` : ''}
+            {tasks.length} {column.wipLimit > 0 ? `/ ${column.wipLimit}` : ''}
           </span>
           {column.isLanding && (
             <span className="inline-flex items-center rounded-full bg-blue-200 px-2 py-1 text-xs font-medium text-blue-800">
@@ -68,13 +71,13 @@ export default function Column({ column, onTaskClick }: ColumnProps) {
         </div>
       </div>
       <div className="overflow-visible flex-1 p-3">
-        {column.tasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <div className={`p-6 text-center text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg ${isOver ? 'bg-indigo-50 border-indigo-300 text-indigo-600' : ''}`}>
             {isOver ? '✨ Drop task here' : 'No tasks yet'}
           </div>
         ) : (
           <ul className="space-y-3">
-            {column.tasks.map((task) => (
+            {tasks.map((task) => (
               <li key={task.id} onClick={() => onTaskClick(task.id)}>
                 <TaskCard 
                   task={task} 
