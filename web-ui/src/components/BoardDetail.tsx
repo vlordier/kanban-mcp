@@ -217,18 +217,41 @@ export default function BoardDetail() {
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{board.name}</h2>
-            <p className="mt-1 text-base text-gray-700">{board.goal}</p>
-          </div>
-          <Link
-            to="/boards"
-            className="ml-6 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white whitespace-nowrap shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Back to Boards
+      {/* Breadcrumb navigation */}
+      <div className="mb-4">
+        <nav className="flex items-center space-x-2 text-sm">
+          <Link to="/boards" className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">
+            Boards
           </Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-700 font-medium">{board.name}</span>
+        </nav>
+      </div>
+
+      <div className="mb-8">
+        <div className="flex justify-between items-start">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{board.name}</h1>
+            <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">{board.goal}</p>
+            <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
+              <span>Created {new Date(board.created_at).toLocaleDateString()}</span>
+              <span>•</span>
+              <span>{columns.reduce((total, col) => total + col.tasks.length, 0)} tasks total</span>
+              <span>•</span>
+              <span>{columns.length} columns</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 ml-6">
+            <Link
+              to="/boards"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Boards
+            </Link>
+          </div>
         </div>
       </div>
 

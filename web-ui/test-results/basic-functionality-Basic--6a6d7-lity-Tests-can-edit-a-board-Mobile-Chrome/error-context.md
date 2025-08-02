@@ -1,0 +1,176 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - heading "MCP Kanban" [level=1]
+- main:
+  - text: K
+  - heading "Kanban Boards" [level=1]
+  - paragraph: 111 boards • Live updates
+  - button "1":
+    - img
+    - text: "1"
+  - button "Switch to dark mode"
+  - button "New Board"
+  - img
+  - textbox "Search boards by name or description..."
+  - heading "Your Boards" [level=2]
+  - text: 111 boards 📋
+  - heading "Another Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Different content
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/f3d4c23e-79d1-44c4-a084-588c23f70a91
+    - text: Open Board
+    - img
+  - text: 🧪
+  - heading "Search Test Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: For testing search
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/9a1ad6ed-41b1-498a-b695-a91f6ebaf036
+    - text: Open Board
+    - img
+  - text: 📋
+  - heading "Editable Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Original goal
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/ba760f19-9e65-445e-ab63-ab802d94dba7
+    - text: Open Board
+    - img
+  - text: 🧪
+  - heading "Test Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Testing board creation
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/8e31d08f-3e13-4281-b683-959d3354c880
+    - text: Open Board
+    - img
+  - text: 📋
+  - heading "Another Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Different content
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/83b16289-64d0-46bb-b10d-c11e2522325a
+    - text: Open Board
+    - img
+  - text: 🧪
+  - heading "Search Test Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: For testing search
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/820119eb-5d26-4da8-8ef7-b16868f0c711
+    - text: Open Board
+    - img
+  - text: 📋
+  - heading "Editable Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Original goal
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/bbbb592f-94fa-41d4-b2b3-b235e5cd2b8b
+    - text: Open Board
+    - img
+  - text: 🧪
+  - heading "Test Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Testing board creation
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/185e7c03-51db-4bd7-a5c9-5f282c41e15b
+    - text: Open Board
+    - img
+  - text: 📋
+  - heading "Another Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Different content
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/2b6ef567-92e3-4208-bfdd-143d5a4a0d73
+    - text: Open Board
+    - img
+  - text: 🧪
+  - heading "Search Test Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: For testing search
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/44934ba2-3cf9-4ffa-91db-8d63d8b1b612
+    - text: Open Board
+    - img
+  - text: 📋
+  - heading "Editable Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Original goal
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/a08c4b34-8477-4869-8923-c45b26f863a6
+    - text: Open Board
+    - img
+  - text: 🧪
+  - heading "Test Board" [level=3]
+  - text: Active today
+  - button "Edit board":
+    - img
+  - button "Delete board":
+    - img
+  - paragraph: Testing board creation
+  - text: 3 tasks 2 in progress 1 done Updated 8/2/2025 Live
+  - link "Open Board":
+    - /url: /boards/1f4d9b7b-5ccb-4478-88ab-127059e58fe4
+    - text: Open Board
+    - img
+  - paragraph: Showing 12 of 111 boards. Use search to find specific boards.
+  - button "View all boards"
+```
