@@ -27,8 +27,13 @@ function App() {
         // Clear search if search input is focused
         const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
         if (searchInput && searchInput === document.activeElement) {
-          searchInput.value = '';
-          searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          // Use React's way to trigger onChange
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(searchInput, '');
+            const event = new Event('input', { bubbles: true });
+            searchInput.dispatchEvent(event);
+          }
         }
       }
     };
