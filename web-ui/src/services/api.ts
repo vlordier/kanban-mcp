@@ -74,6 +74,69 @@ export async function updateTask(taskId: string, content: string): Promise<{
   return response.json();
 }
 
+export async function createBoard(name: string, goal: string): Promise<{
+  success: boolean;
+  message: string;
+  boardId: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/boards`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, goal }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to create board');
+  }
+
+  return response.json();
+}
+
+export async function createTask(columnId: string, title: string, content: string): Promise<{
+  success: boolean;
+  message: string;
+  task: Task;
+}> {
+  const response = await fetch(`${API_BASE_URL}/tasks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ columnId, title, content }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    if (response.status === 422) {
+      throw new Error(errorData.message || 'Column capacity limit reached');
+    }
+    throw new Error(errorData.error || 'Failed to create task');
+  }
+
+  return response.json();
+}
+
+export async function deleteTask(taskId: string): Promise<{
+  success: boolean;
+  message: string;
+  taskId: string;
+  changes: number;
+}> {
+  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `Failed to delete task with ID ${taskId}`);
+  }
+
+  return response.json();
+}
+
 export async function deleteBoard(boardId: string): Promise<{
   success: boolean;
   message: string;
