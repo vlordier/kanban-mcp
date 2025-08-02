@@ -21,31 +21,59 @@ export default function Column({ column, onTaskClick }: ColumnProps) {
   
   // Apply styles when a task is being dragged over this column
   const dropIndicatorStyle = isOver ? 'border-2 border-dashed border-indigo-500 bg-indigo-50' : '';
+  // Get column header color based on column type
+  const getColumnHeaderColor = () => {
+    if (column.isLanding) {
+      return 'bg-blue-100 border-blue-200 text-blue-800';
+    }
+    
+    const columnName = column.name.toLowerCase();
+    if (columnName.includes('todo') || columnName.includes('backlog')) {
+      return 'bg-gray-100 border-gray-200 text-gray-800';
+    } else if (columnName.includes('progress') || columnName.includes('doing') || columnName.includes('development')) {
+      return 'bg-yellow-100 border-yellow-200 text-yellow-800';
+    } else if (columnName.includes('review') || columnName.includes('testing')) {
+      return 'bg-orange-100 border-orange-200 text-orange-800';
+    } else if (columnName.includes('done') || columnName.includes('complete')) {
+      return 'bg-green-100 border-green-200 text-green-800';
+    }
+    
+    return 'bg-gray-100 border-gray-200 text-gray-800';
+  };
+
+  // Check if column is at or near capacity
+  const isNearCapacity = column.wipLimit > 0 && column.tasks.length >= column.wipLimit * 0.8;
+  const isAtCapacity = column.wipLimit > 0 && column.tasks.length >= column.wipLimit;
+
   return (
     <div 
       ref={setNodeRef}
-      className={`flex flex-col border-b border-gray-900/5 bg-gray-50 rounded-md shadow p-2 min-w-[250px] transition-colors ${isDragging ? dropIndicatorStyle : ''}`}
+      className={`flex flex-col bg-white border rounded-lg shadow-sm min-w-[280px] transition-all ${isDragging ? dropIndicatorStyle : ''}`}
     >
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-medium text-gray-900">{column.name}</h3>
-        <div className="flex items-center">
-          <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-1 text-xs font-medium text-gray-800">
+      <div className={`flex justify-between items-center p-3 border-b border-t-4 rounded-t-lg ${getColumnHeaderColor()}`}>
+        <h3 className="text-sm font-semibold">{column.name}</h3>
+        <div className="flex items-center space-x-2">
+          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+            isAtCapacity ? 'bg-red-100 text-red-700' : 
+            isNearCapacity ? 'bg-yellow-100 text-yellow-700' : 
+            'bg-white/80 text-gray-700'
+          }`}>
             {column.tasks.length} {column.wipLimit > 0 ? `/ ${column.wipLimit}` : ''}
           </span>
           {column.isLanding && (
-            <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+            <span className="inline-flex items-center rounded-full bg-blue-200 px-2 py-1 text-xs font-medium text-blue-800">
               Landing
             </span>
           )}
         </div>
       </div>
-      <div className="overflow-visible flex-1">
+      <div className="overflow-visible flex-1 p-3">
         {column.tasks.length === 0 ? (
-          <div className={`p-4 text-center text-sm text-gray-500 ${isOver ? 'bg-indigo-100 rounded-md' : ''}`}>
-            {isOver ? 'Drop here' : 'No tasks'}
+          <div className={`p-6 text-center text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg ${isOver ? 'bg-indigo-50 border-indigo-300 text-indigo-600' : ''}`}>
+            {isOver ? '✨ Drop task here' : 'No tasks yet'}
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {column.tasks.map((task) => (
               <li key={task.id} onClick={() => onTaskClick(task.id)}>
                 <TaskCard 
