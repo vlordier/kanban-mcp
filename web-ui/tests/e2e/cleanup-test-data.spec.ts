@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Test Data Cleanup', () => {
   test('Clean up test boards for better UX screenshots', async ({ page }) => {
     await page.goto('/');
-    
+
     // Delete boards with test patterns to clean up the UI
     const testPatterns = [
       'Test Board',
@@ -18,19 +18,19 @@ test.describe('Test Data Cleanup', () => {
       'Large Content Test',
       'Responsive Demo',
       'Accessibility Test',
-      'Screenshot Demo'
+      'Screenshot Demo',
     ];
-    
+
     let cleanupCount = 0;
     const maxCleanup = 30; // Prevent infinite loops
-    
+
     while (cleanupCount < maxCleanup) {
       let foundTestBoard = false;
-      
+
       for (const pattern of testPatterns) {
         const deleteButtons = page.locator(`tr:has-text("${pattern}") button:has-text("Delete")`);
         const count = await deleteButtons.count();
-        
+
         if (count > 0) {
           try {
             await deleteButtons.first().click();
@@ -45,12 +45,12 @@ test.describe('Test Data Cleanup', () => {
           }
         }
       }
-      
+
       // Also clean up boards with timestamps
       if (!foundTestBoard) {
         const timestampBoards = page.locator('tr:has-text(/\\d{13}/) button:has-text("Delete")');
         const timestampCount = await timestampBoards.count();
-        
+
         if (timestampCount > 0) {
           try {
             await timestampBoards.first().click();
@@ -64,17 +64,17 @@ test.describe('Test Data Cleanup', () => {
           }
         }
       }
-      
+
       if (!foundTestBoard) {
         break; // No more test boards found
       }
     }
-    
+
     console.log(`Cleanup completed. Removed ${cleanupCount} test boards.`);
-    
-    await page.screenshot({ 
-      path: `screenshots/cleanup/cleaned-homepage-${Date.now()}.png`, 
-      fullPage: true 
+
+    await page.screenshot({
+      path: `screenshots/cleanup/cleaned-homepage-${Date.now()}.png`,
+      fullPage: true,
     });
   });
 });

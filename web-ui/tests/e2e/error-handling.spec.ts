@@ -36,10 +36,10 @@ test.describe('Error Handling and Edge Cases', () => {
     // Verify user sees appropriate error feedback
     // The dialog should still be open or show error state
     await expect(page.locator('text=Network Error Test')).toBeVisible();
-    
+
     // Take screenshot of error state
     await page.screenshot({
-      path: './screenshots/error-handling/01-network-error-board-creation-1754162400000.png'
+      path: './screenshots/error-handling/01-network-error-board-creation-1754162400000.png',
     });
 
     console.log('Network error logs:', errorLogs);
@@ -79,7 +79,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of error rollback
     await page.screenshot({
       path: './screenshots/error-handling/02-edit-error-rollback-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -96,7 +96,8 @@ test.describe('Error Handling and Edge Cases', () => {
     let requestCount = 0;
     await page.route('**/api/boards', route => {
       requestCount++;
-      if (requestCount % 3 === 0) { // Fail every 3rd request
+      if (requestCount % 3 === 0) {
+        // Fail every 3rd request
         route.abort('internetdisconnected');
       } else {
         route.continue();
@@ -115,13 +116,13 @@ test.describe('Error Handling and Edge Cases', () => {
     await page.fill('input#board-name', 'After Polling Errors');
     await page.fill('textarea#board-goal', 'Created despite polling errors');
     await page.click('button:has-text("Create Board")');
-    
+
     await expect(page.locator('text=After Polling Errors')).toBeVisible();
 
     // Take screenshot showing resilience
     await page.screenshot({
       path: './screenshots/error-handling/03-polling-error-resilience-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
 
     console.log('Polling error logs:', consoleLogs);
@@ -134,7 +135,7 @@ test.describe('Error Handling and Edge Cases', () => {
         route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: '{"invalid": json syntax}'
+          body: '{"invalid": json syntax}',
         });
       } else {
         route.continue();
@@ -151,7 +152,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of malformed response handling
     await page.screenshot({
       path: './screenshots/error-handling/04-malformed-api-response-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -165,7 +166,7 @@ test.describe('Error Handling and Edge Cases', () => {
 
     // Take screenshot of long input
     await page.screenshot({
-      path: './screenshots/error-handling/05-long-input-fields-1754162400000.png'
+      path: './screenshots/error-handling/05-long-input-fields-1754162400000.png',
     });
 
     await page.click('button:has-text("Create Board")');
@@ -179,7 +180,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of long content handling
     await page.screenshot({
       path: './screenshots/error-handling/06-long-content-handling-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -191,13 +192,13 @@ test.describe('Error Handling and Edge Cases', () => {
     await page.fill('input#board-name', specialName);
     await page.fill('textarea#board-goal', unicodeGoal);
     await page.click('button:has-text("Create Board")');
-    
+
     await page.waitForTimeout(2000);
 
     // Verify special characters are properly escaped/displayed
     await expect(page.locator('text=🚀 Board with émojis')).toBeVisible();
     await expect(page.locator('text=中文')).toBeVisible();
-    
+
     // Verify XSS attempt is neutralized (script should not execute)
     const hasAlert = await page.evaluate(() => {
       return window.alert.toString().includes('[native code]');
@@ -207,7 +208,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of special character handling
     await page.screenshot({
       path: './screenshots/error-handling/07-special-characters-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -229,7 +230,7 @@ test.describe('Error Handling and Edge Cases', () => {
       () => page.click('button[title="Notifications"]'),
       () => page.hover('div:has-text("Rapid Interaction Test")'),
       () => page.click('button[title="Edit board"]'),
-      () => page.click('button:has-text("Cancel")')
+      () => page.click('button:has-text("Cancel")'),
     ];
 
     // Execute interactions rapidly
@@ -245,7 +246,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of post-rapid-interactions state
     await page.screenshot({
       path: './screenshots/error-handling/08-rapid-interactions-stable-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -283,7 +284,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of navigation handling
     await page.screenshot({
       path: './screenshots/error-handling/09-browser-navigation-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -313,7 +314,7 @@ test.describe('Error Handling and Edge Cases', () => {
     // Take screenshot of concurrent edit result
     await page.screenshot({
       path: './screenshots/error-handling/10-concurrent-edits-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -322,7 +323,7 @@ test.describe('Error Handling and Edge Cases', () => {
     await page.addInitScript(() => {
       (window as any).performanceMarks = [];
       const originalFetch = window.fetch;
-      window.fetch = function(...args) {
+      window.fetch = function (...args) {
         (window as any).performanceMarks.push(Date.now());
         return originalFetch.apply(this, args);
       };
@@ -332,7 +333,10 @@ test.describe('Error Handling and Edge Cases', () => {
     for (let i = 1; i <= 20; i++) {
       await page.click('button:has-text("New Board")');
       await page.fill('input#board-name', `Load Test Board ${i}`);
-      await page.fill('textarea#board-goal', `Performance testing board number ${i} for load testing scenarios`);
+      await page.fill(
+        'textarea#board-goal',
+        `Performance testing board number ${i} for load testing scenarios`
+      );
       await page.click('button:has-text("Create Board")');
       await page.waitForTimeout(100);
     }
@@ -354,13 +358,15 @@ test.describe('Error Handling and Edge Cases', () => {
     await page.click('button[title="Clear search"]');
 
     // Check performance metrics
-    const performanceMarks = await page.evaluate(() => (window as any).performanceMarks?.length || 0);
+    const performanceMarks = await page.evaluate(
+      () => (window as any).performanceMarks?.length || 0
+    );
     console.log('Performance marks captured:', performanceMarks);
 
     // Take screenshot of load test result
     await page.screenshot({
       path: './screenshots/error-handling/11-load-test-performance-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -369,7 +375,7 @@ test.describe('Error Handling and Edge Cases', () => {
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', 'Refresh Test Board');
     await page.fill('textarea#board-goal', 'Testing page refresh handling');
-    
+
     // Don't click create - refresh while dialog is open
     await page.reload();
     await page.waitForSelector('h1:has-text("Kanban Boards")');
@@ -383,13 +389,13 @@ test.describe('Error Handling and Edge Cases', () => {
     await page.fill('input#board-name', 'Post Refresh Board');
     await page.fill('textarea#board-goal', 'Created after refresh');
     await page.click('button:has-text("Create Board")');
-    
+
     await expect(page.locator('text=Post Refresh Board')).toBeVisible();
 
     // Take screenshot of post-refresh recovery
     await page.screenshot({
       path: './screenshots/error-handling/12-page-refresh-recovery-1754162400000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 });

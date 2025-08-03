@@ -1,55 +1,48 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import {
   KanbanDB,
   ColumnWithTasks,
   createDBInstance,
   ColumnCapacityFullError,
-} from "@kanban-mcp/db";
+} from '@kanban-mcp/db';
 
 dayjs.extend(relativeTime);
 
 const mcpServer = new McpServer({
-  name: "KanbanMCP",
-  version: "1.1.0",
+  name: 'KanbanMCP',
+  version: '1.1.0',
 });
 
-const folderPath = process.env.MCP_KANBAN_DB_FOLDER_PATH ?? "./db";
+const folderPath = process.env.MCP_KANBAN_DB_FOLDER_PATH ?? './db';
 const db = createDBInstance(folderPath);
 const kanbanDB = new KanbanDB(db);
 
 mcpServer.tool(
-  "create-kanban-board",
-  "Create a new kanban board to plan and keep track of your tasks. Specify the goal of the project in 1-3 sentences.",
+  'create-kanban-board',
+  'Create a new kanban board to plan and keep track of your tasks. Specify the goal of the project in 1-3 sentences.',
   { name: z.string(), projectGoal: z.string() },
   async ({ name, projectGoal }) => {
     const columns = [
-      { name: "On Hold", position: 0, wipLimit: 0 }, // 0 means unlimited
-      { name: "To Do", position: 1, wipLimit: 0 },
-      { name: "In Progress", position: 2, wipLimit: 3 },
-      { name: "Done", position: 3, wipLimit: 0, isDoneColumn: true },
+      { name: 'On Hold', position: 0, wipLimit: 0 }, // 0 means unlimited
+      { name: 'To Do', position: 1, wipLimit: 0 },
+      { name: 'In Progress', position: 2, wipLimit: 3 },
+      { name: 'Done', position: 3, wipLimit: 0, isDoneColumn: true },
     ];
 
     const landingColPos = 1; // The "To Do" column
-    const { boardId } = kanbanDB.createBoard(
-      name,
-      projectGoal,
-      columns,
-      landingColPos
-    );
+    const { boardId } = kanbanDB.createBoard(name, projectGoal, columns, landingColPos);
 
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Created Kanban board "${name}" with ID: ${boardId}\n\nDefault columns created: ${columns
             .map((col: { name: string }) => col.name)
-            .join(
-              ", "
-            )}\n\n"To Do" column set as landing column for new tasks.`,
+            .join(', ')}\n\n"To Do" column set as landing column for new tasks.`,
         },
       ],
     };
@@ -57,8 +50,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "add-task-to-board",
-  "Add a new task to the landing column (to-do) of a kanban board. Provide a title and content for the task. The content is a markdown string that should include a short description of what needs to be done, why it needs to be done, as well as acceptance criteria.",
+  'add-task-to-board',
+  'Add a new task to the landing column (to-do) of a kanban board. Provide a title and content for the task. The content is a markdown string that should include a short description of what needs to be done, why it needs to be done, as well as acceptance criteria.',
   {
     boardId: z.string(),
     title: z.string(),
@@ -71,7 +64,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find board with ID: ${boardId}`,
           },
         ],
@@ -83,7 +76,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Board "${board.name}" does not have a landing column configured.`,
           },
         ],
@@ -98,7 +91,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find landing column with ID: ${board.landing_column_id}`,
           },
         ],
@@ -115,7 +108,7 @@ mcpServer.tool(
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error: ${(error as Error).message}. Complete some tasks in this column first.`,
             },
           ],
@@ -125,7 +118,7 @@ mcpServer.tool(
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error occurred while adding the task`,
             },
           ],
@@ -137,7 +130,7 @@ mcpServer.tool(
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Added task "${title}" to "${column.name}" column in board "${board.name}":\n\n${content}`,
         },
       ],
@@ -155,8 +148,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "move-task",
-  "Move a task from one column to another, respecting WIP limits. Only move tasks into the Done column if the user approved that the task is done. When moving to Done, provide a short reason for completion.",
+  'move-task',
+  'Move a task from one column to another, respecting WIP limits. Only move tasks into the Done column if the user approved that the task is done. When moving to Done, provide a short reason for completion.',
   {
     taskId: z.string(),
     targetColumnId: z.string(),
@@ -169,7 +162,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find task with ID: ${taskId}`,
           },
         ],
@@ -182,7 +175,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Task is already in the target column.`,
           },
         ],
@@ -196,7 +189,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find target column with ID: ${targetColumnId}`,
           },
         ],
@@ -210,7 +203,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find source column with ID: ${task.column_id}`,
           },
         ],
@@ -225,7 +218,7 @@ mcpServer.tool(
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error: ${(error as Error).message}. Work on tasks in the "${targetColumn.name}" column first.`,
             },
           ],
@@ -235,7 +228,7 @@ mcpServer.tool(
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error occurred while moving the task`,
             },
           ],
@@ -245,12 +238,12 @@ mcpServer.tool(
     }
 
     const board = kanbanDB.getBoardById(targetColumn.board_id);
-    const boardName = board ? board.name : "Unknown";
+    const boardName = board ? board.name : 'Unknown';
 
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Moved task "${task.title}" from "${sourceColumn.name}" to "${targetColumn.name}" column in board "${boardName}"`,
         },
       ],
@@ -259,8 +252,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "delete-task",
-  "Delete a task from a kanban board.",
+  'delete-task',
+  'Delete a task from a kanban board.',
   {
     taskId: z.string(),
   },
@@ -270,7 +263,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Deleted task with ID: ${taskId}`,
           },
         ],
@@ -279,7 +272,7 @@ mcpServer.tool(
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Error: Could not delete task with ID: ${taskId}`,
         },
       ],
@@ -289,8 +282,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "get-board-info",
-  "Get the full info of a kanban board, including columns and tasks (without task content).",
+  'get-board-info',
+  'Get the full info of a kanban board, including columns and tasks (without task content).',
   {
     boardId: z.string(),
   },
@@ -301,7 +294,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find board with ID: ${boardId}`,
           },
         ],
@@ -315,7 +308,7 @@ mcpServer.tool(
       .map((col: ColumnWithTasks) => {
         return (
           `Column: ${col.name} (ID ${col.id}) (Capacity: ${
-            col.wipLimit > 0 ? col.wipLimit : "unlimited"
+            col.wipLimit > 0 ? col.wipLimit : 'unlimited'
           })\n` +
           col.tasks
             .map(
@@ -337,18 +330,18 @@ mcpServer.tool(
                   taskInfo += `, Update reason: ${task.updateReason}`;
                 }
 
-                return taskInfo + ")";
+                return taskInfo + ')';
               }
             )
-            .join("\n")
+            .join('\n')
         );
       })
-      .join("\n\n");
+      .join('\n\n');
 
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Retrieved board "${board.name}" with ${
             columns.length
           } columns and ${columns.reduce(
@@ -357,11 +350,11 @@ mcpServer.tool(
           )} tasks.`,
         },
         {
-          type: "text",
+          type: 'text',
           text: `Board goal:\n\n${board.goal}`,
         },
         {
-          type: "text",
+          type: 'text',
           text: `Board tasks:\n\n${fullTaskListString}\n\nUse get-task-info to get the full content of a task.`,
         },
       ],
@@ -370,8 +363,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "get-task-info",
-  "Get the full info of a task, including its content.",
+  'get-task-info',
+  'Get the full info of a task, including its content.',
   {
     taskId: z.string(),
   },
@@ -382,7 +375,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error: Could not find task with ID: ${taskId}`,
           },
         ],
@@ -399,7 +392,7 @@ mcpServer.tool(
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: responseText,
         },
       ],
@@ -408,8 +401,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "list-boards",
-  "List all kanban boards in the database: Name, creation time, and goal.",
+  'list-boards',
+  'List all kanban boards in the database: Name, creation time, and goal.',
   {},
   async () => {
     const boards = kanbanDB.getAllBoards();
@@ -418,7 +411,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `No boards found.`,
           },
         ],
@@ -427,22 +420,17 @@ mcpServer.tool(
 
     const boardListString = boards
       .map(
-        (board: {
-          name: string;
-          id: string;
-          created_at: string;
-          goal: string;
-        }) =>
+        (board: { name: string; id: string; created_at: string; goal: string }) =>
           `- ${board.name} (ID: ${board.id}, Created At: ${dayjs(
             board.created_at
           ).fromNow()}, Goal: ${board.goal})`
       )
-      .join("\n");
+      .join('\n');
 
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Retrieved ${boards.length} boards:\n\n${boardListString}`,
         },
       ],
@@ -451,8 +439,8 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "export-database",
-  "Export the entire kanban database to a JSON format that can be saved to a file.",
+  'export-database',
+  'Export the entire kanban database to a JSON format that can be saved to a file.',
   {},
   async () => {
     try {
@@ -460,11 +448,11 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Database exported successfully. Contains ${data.boards.length} boards, ${data.columns.length} columns, and ${data.tasks.length} tasks.`,
           },
           {
-            type: "text",
+            type: 'text',
             text: JSON.stringify(data, null, 2),
           },
         ],
@@ -473,7 +461,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error exporting database: ${error instanceof Error ? error.message : 'Unknown error'}`,
           },
         ],
@@ -484,38 +472,38 @@ mcpServer.tool(
 );
 
 mcpServer.tool(
-  "import-database",
-  "Import a kanban database from JSON format. This will replace ALL existing data.",
+  'import-database',
+  'Import a kanban database from JSON format. This will replace ALL existing data.',
   {
     jsonData: z.string(),
   },
   async ({ jsonData }) => {
     try {
       const data = JSON.parse(jsonData);
-      
+
       // Validate the data structure
       if (!data.boards || !data.columns || !data.tasks) {
         return {
           content: [
             {
-              type: "text",
-              text: "Error: Invalid database format. Must contain boards, columns, and tasks arrays.",
+              type: 'text',
+              text: 'Error: Invalid database format. Must contain boards, columns, and tasks arrays.',
             },
           ],
           isError: true,
         };
       }
-      
+
       // Validate file size (JSON string size)
       const dataSize = jsonData.length;
       const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit
-      
+
       if (dataSize > maxSizeBytes) {
         return {
           content: [
             {
-              type: "text",
-              text: `Error: Import data too large. Size (${Math.round(dataSize / 1024 / 1024 * 100) / 100}MB) exceeds maximum allowed size of ${maxSizeBytes / 1024 / 1024}MB`,
+              type: 'text',
+              text: `Error: Import data too large. Size (${Math.round((dataSize / 1024 / 1024) * 100) / 100}MB) exceeds maximum allowed size of ${maxSizeBytes / 1024 / 1024}MB`,
             },
           ],
           isError: true,
@@ -523,11 +511,11 @@ mcpServer.tool(
       }
 
       kanbanDB.importDatabase(data);
-      
+
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Database imported successfully. Imported ${data.boards.length} boards, ${data.columns.length} columns, and ${data.tasks.length} tasks.`,
           },
         ],
@@ -536,7 +524,7 @@ mcpServer.tool(
       return {
         content: [
           {
-            type: "text",
+            type: 'text',
             text: `Error importing database: ${error instanceof Error ? error.message : 'Unknown error'}`,
           },
         ],
@@ -546,16 +534,13 @@ mcpServer.tool(
   }
 );
 
-mcpServer.prompt(
-  "create-kanban-based-project",
-  { description: z.string() },
-  ({ description }) => ({
-    messages: [
-      {
-        role: "user",
-        content: {
-          type: "text",
-          text: `
+mcpServer.prompt('create-kanban-based-project', { description: z.string() }, ({ description }) => ({
+  messages: [
+    {
+      role: 'user',
+      content: {
+        type: 'text',
+        text: `
         Help me with the following project:\n\n${description}\n\n
         First, create a kanban board for the project. Use this kanban board to keep track 
         of the project.
@@ -564,22 +549,18 @@ mcpServer.prompt(
         Only add tasks that you can complete yourself with the provided tools at your disposal.
         When you are done adding all the tasks, show me an overview of the board.
         `,
-        },
       },
-    ],
-  })
-);
+    },
+  ],
+}));
 
-mcpServer.prompt(
-  "make-progress-on-a-project",
-  { project: z.string() },
-  ({ project }) => ({
-    messages: [
-      {
-        role: "user",
-        content: {
-          type: "text",
-          text: `
+mcpServer.prompt('make-progress-on-a-project', { project: z.string() }, ({ project }) => ({
+  messages: [
+    {
+      role: 'user',
+      content: {
+        type: 'text',
+        text: `
         Let's make progress on the following project:\n\n${project}\n\n
         Locate the kanban project in the list of boards. If it doesn't exist, tell me before creating one.
         After you located the correct board, get its info and pick the next task to work on.
@@ -588,44 +569,43 @@ mcpServer.prompt(
         that by yourself, ask me if they are met.
         If you can't make progress, tell me why. 
         `,
-        },
       },
-    ],
-  })
-);
+    },
+  ],
+}));
 
 const transport = new StdioServerTransport();
 mcpServer
   .connect(transport)
   .then(() => {
-    console.error("MCP Server running on stdio");
+    console.error('MCP Server running on stdio');
   })
-  .catch((err) => {
-    console.error("MCP Server connection error", err);
+  .catch(err => {
+    console.error('MCP Server connection error', err);
     process.exit(1);
   });
 
 async function closeServer() {
-  console.error("Closing MCP Server");
+  console.error('Closing MCP Server');
   await mcpServer.close();
   kanbanDB.close();
 }
 
-process.stdin.on("close", async () => {
-  console.error("MCP Server closed");
+process.stdin.on('close', async () => {
+  console.error('MCP Server closed');
   await closeServer();
   process.exit(0);
 });
 
 // Handle graceful shutdown
-process.on("SIGINT", async () => {
-  console.error("Shutting down servers...");
+process.on('SIGINT', async () => {
+  console.error('Shutting down servers...');
   await closeServer();
   process.exit(0);
 });
 
-process.on("SIGTERM", async () => {
-  console.error("Shutting down servers...");
+process.on('SIGTERM', async () => {
+  console.error('Shutting down servers...');
   await closeServer();
   process.exit(0);
 });

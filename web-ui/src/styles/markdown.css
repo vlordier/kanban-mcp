@@ -32,7 +32,8 @@
   font-weight: 600;
 }
 
-.markdown-content h5, .markdown-content h6 {
+.markdown-content h5,
+.markdown-content h6 {
   font-size: 1.1em;
   margin-top: 1em;
   margin-bottom: 0.5em;
@@ -45,7 +46,8 @@
 }
 
 /* Lists */
-.markdown-content ul, .markdown-content ol {
+.markdown-content ul,
+.markdown-content ol {
   margin-bottom: 1em;
   padding-left: 2em;
 }
@@ -85,7 +87,9 @@
   background-color: #f3f4f6;
   border-radius: 0.25rem;
   padding: 0.2em 0.4em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
   font-size: 0.875em;
 }
 
@@ -112,7 +116,8 @@
   margin-bottom: 1em;
 }
 
-.markdown-content th, .markdown-content td {
+.markdown-content th,
+.markdown-content td {
   border: 1px solid #e5e7eb;
   padding: 0.5em;
 }

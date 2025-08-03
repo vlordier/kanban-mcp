@@ -11,7 +11,7 @@ export function useImportExport() {
 
   const exportMutation = useMutation({
     mutationFn: exportDatabase,
-    onSuccess: (blob) => {
+    onSuccess: blob => {
       // Create download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -23,7 +23,7 @@ export function useImportExport() {
       document.body.removeChild(a);
       notifications.success('Database exported successfully');
     },
-    onError: (error) => handleApiError(error, 'Failed to export database'),
+    onError: error => handleApiError(error, 'Failed to export database'),
   });
 
   const importMutation = useMutation({
@@ -34,21 +34,23 @@ export function useImportExport() {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
       notifications.success('Database imported successfully!');
     },
-    onError: (error) => handleApiError(error, 'Failed to import database'),
+    onError: error => handleApiError(error, 'Failed to import database'),
   });
 
-  const handleFileImport = async (file: File): Promise<{ boards: Board[]; columns: Column[]; tasks: Task[] }> => {
+  const handleFileImport = async (
+    file: File
+  ): Promise<{ boards: Board[]; columns: Column[]; tasks: Task[] }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         try {
           const data = JSON.parse(e.target?.result as string);
-          
+
           // Basic validation
           if (!data.boards || !data.columns || !data.tasks) {
             throw new Error('Invalid file format. Must contain boards, columns, and tasks arrays.');
           }
-          
+
           resolve(data);
         } catch (error) {
           reject(error);

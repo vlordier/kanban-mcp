@@ -21,18 +21,18 @@ test.describe('Live Updates and Change Detection', () => {
     await page.fill('input#board-name', 'Change Detection Test');
     await page.fill('textarea#board-goal', 'Testing live change detection for board creation');
     await page.click('button:has-text("Create Board")');
-    
+
     // Wait for board to appear
     await page.waitForSelector('text=Change Detection Test');
-    
+
     // Check that change detection fired
     const updateEvents = await page.evaluate(() => (window as any).updateEvents || 0);
     console.log('Update events fired:', updateEvents);
-    
+
     // Take screenshot showing change detection result
     await page.screenshot({
       path: './screenshots/live-updates/01-board-creation-detected-1754162100000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -56,29 +56,29 @@ test.describe('Live Updates and Change Detection', () => {
     // Edit the board
     await page.hover('div:has-text("Original Board Name")');
     await page.click('button[title="Edit board"]');
-    
+
     // Modify board details
     await page.fill('input#edit-board-name', 'Modified Board Name');
     await page.fill('textarea#edit-board-goal', 'Updated goal description with new information');
     await page.click('button:has-text("Save Changes")');
-    
+
     // Wait for changes to be reflected
     await page.waitForTimeout(2000);
-    
+
     // Verify changes are visible
     await expect(page.locator('text=Modified Board Name')).toBeVisible();
     await expect(page.locator('text=Updated goal description')).toBeVisible();
-    
+
     // Check change detection results
     const updateType = await page.evaluate(() => (window as any).lastUpdateType);
     const updateField = await page.evaluate(() => (window as any).lastUpdateField);
-    
+
     console.log('Update type:', updateType, 'Update field:', updateField);
-    
+
     // Take screenshot of modification detection
     await page.screenshot({
       path: './screenshots/live-updates/02-board-modification-detected-1754162100000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -106,23 +106,23 @@ test.describe('Live Updates and Change Detection', () => {
     await page.hover('div:has-text("Board To Delete")');
     await page.click('button[title="Delete board"]');
     await page.click('button:has-text("Delete"):not(:has-text("Cancel"))');
-    
+
     // Wait for deletion to process
     await page.waitForTimeout(2000);
-    
+
     // Verify board is gone
     await expect(page.locator('text=Board To Delete')).not.toBeVisible();
-    
+
     // Check deletion detection
     const deletionDetected = await page.evaluate(() => (window as any).deletionDetected);
     const deletedBoardName = await page.evaluate(() => (window as any).deletedBoardName);
-    
+
     console.log('Deletion detected:', deletionDetected, 'Deleted:', deletedBoardName);
-    
+
     // Take screenshot of deletion detection
     await page.screenshot({
       path: './screenshots/live-updates/03-board-deletion-detected-1754162100000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -140,7 +140,7 @@ test.describe('Live Updates and Change Detection', () => {
     const boards = [
       { name: 'Rapid Test Board 1', goal: 'First rapid creation test' },
       { name: 'Rapid Test Board 2', goal: 'Second rapid creation test' },
-      { name: 'Rapid Test Board 3', goal: 'Third rapid creation test' }
+      { name: 'Rapid Test Board 3', goal: 'Third rapid creation test' },
     ];
 
     for (let i = 0; i < boards.length; i++) {
@@ -162,11 +162,11 @@ test.describe('Live Updates and Change Detection', () => {
     // Check change detection results
     const allChanges = await page.evaluate(() => (window as any).allChanges || []);
     console.log('Total changes detected:', allChanges.length);
-    
+
     // Take screenshot of multiple changes handling
     await page.screenshot({
       path: './screenshots/live-updates/04-multiple-changes-handled-1754162100000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 
@@ -197,11 +197,11 @@ test.describe('Live Updates and Change Detection', () => {
 
     // Verify data is still consistent after polling
     await expect(page.locator('text=Consistency Test Board - Edit 3')).toBeVisible();
-    
+
     // Take screenshot of final consistent state
     await page.screenshot({
       path: './screenshots/live-updates/05-data-consistency-maintained-1754162100000.png',
-      fullPage: true
+      fullPage: true,
     });
   });
 });

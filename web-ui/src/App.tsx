@@ -16,7 +16,9 @@ function App() {
       if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
         event.preventDefault();
         // Focus search input if it exists
-        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+        const searchInput = document.querySelector(
+          'input[placeholder*="Search"]'
+        ) as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
         }
@@ -25,10 +27,15 @@ function App() {
       // Escape to clear search or close modals
       if (event.key === 'Escape') {
         // Clear search if search input is focused
-        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+        const searchInput = document.querySelector(
+          'input[placeholder*="Search"]'
+        ) as HTMLInputElement;
         if (searchInput && searchInput === document.activeElement) {
           // Use React's way to trigger onChange
-          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype,
+            'value'
+          )?.set;
           if (nativeInputValueSetter) {
             nativeInputValueSetter.call(searchInput, '');
             const event = new Event('input', { bubbles: true });

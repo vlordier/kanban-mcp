@@ -44,19 +44,19 @@ describe('TaskCard', () => {
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.setSystemTime(MOCK_CURRENT_TIME);
-    
+
     const { useDraggable } = await import('@dnd-kit/core');
     vi.mocked(useDraggable).mockReturnValue({
       active: null,
       activatorEvent: null,
       activeNodeRect: null,
-      attributes: { 
-        role: 'button', 
-        'aria-describedby': 'DndDescribedBy-1', 
+      attributes: {
+        role: 'button',
+        'aria-describedby': 'DndDescribedBy-1',
         tabIndex: 0,
         'aria-disabled': false,
         'aria-pressed': undefined,
-        'aria-roledescription': 'Draggable'
+        'aria-roledescription': 'Draggable',
       } as any,
       isDragging: false,
       listeners: { onPointerDown: vi.fn(), onKeyDown: vi.fn() },
@@ -72,8 +72,8 @@ describe('TaskCard', () => {
   });
 
   const renderTaskCard = (
-    task = baseTask, 
-    column = baseColumn, 
+    task = baseTask,
+    column = baseColumn,
     isMoving = false,
     contextProps = {}
   ) => {
@@ -84,7 +84,7 @@ describe('TaskCard', () => {
         <DndContext {...contextProps}>
           <TaskCard task={task} column={column} isMoving={isMoving} />
         </DndContext>
-      )
+      ),
     };
   };
 
@@ -135,7 +135,8 @@ describe('TaskCard', () => {
     it('handles very long task titles with proper truncation', () => {
       const longTitleTask: TaskSummary = {
         ...baseTask,
-        title: 'This is an extremely long task title that should be handled properly with ellipsis and responsive design considerations'
+        title:
+          'This is an extremely long task title that should be handled properly with ellipsis and responsive design considerations',
       };
       renderTaskCard(longTitleTask);
       const titleElement = screen.getByRole('heading', { level: 4 });
@@ -145,7 +146,7 @@ describe('TaskCard', () => {
     it('handles invalid date strings gracefully', () => {
       const invalidDateTask: TaskSummary = {
         ...baseTask,
-        updatedAt: 'invalid-date-string'
+        updatedAt: 'invalid-date-string',
       };
       renderTaskCard(invalidDateTask);
       // Should not crash and should display "Invalid Date"
@@ -160,7 +161,7 @@ describe('TaskCard', () => {
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
       } as TaskSummary;
-      
+
       expect(() => renderTaskCard(minimalTask)).not.toThrow();
       expect(screen.getByText('Minimal Task')).toBeInTheDocument();
     });
@@ -168,7 +169,7 @@ describe('TaskCard', () => {
     it('handles special characters in task title', () => {
       const specialCharTask: TaskSummary = {
         ...baseTask,
-        title: 'Task with émojis 🚀 & special chars: <>&"\'`'
+        title: 'Task with émojis 🚀 & special chars: <>&"\'`',
       };
       renderTaskCard(specialCharTask);
       expect(screen.getByText('Task with émojis 🚀 & special chars: <>&"\'`')).toBeInTheDocument();
@@ -231,7 +232,16 @@ describe('TaskCard', () => {
     it('displays column name badge with correct styling', () => {
       renderTaskCard();
       const columnBadge = screen.getByText('To Do');
-      expect(columnBadge).toHaveClass('inline-flex', 'items-center', 'px-2', 'py-1', 'rounded-md', 'bg-gray-100', 'text-gray-600', 'font-medium');
+      expect(columnBadge).toHaveClass(
+        'inline-flex',
+        'items-center',
+        'px-2',
+        'py-1',
+        'rounded-md',
+        'bg-gray-100',
+        'text-gray-600',
+        'font-medium'
+      );
     });
 
     it('updates column name when column changes', () => {
@@ -251,10 +261,12 @@ describe('TaskCard', () => {
     it('handles very long column names appropriately', () => {
       const longNameColumn: ColumnWithTasks = {
         ...baseColumn,
-        name: 'This is a very long column name that might cause layout issues'
+        name: 'This is a very long column name that might cause layout issues',
       };
       renderTaskCard(baseTask, longNameColumn);
-      expect(screen.getByText('This is a very long column name that might cause layout issues')).toBeInTheDocument();
+      expect(
+        screen.getByText('This is a very long column name that might cause layout issues')
+      ).toBeInTheDocument();
     });
   });
 
@@ -299,70 +311,70 @@ describe('TaskCard', () => {
   describe('Status color detection', () => {
     const colorTestCases = [
       // Landing column
-      { 
-        columnProps: { isLanding: true, name: 'Any Name' }, 
+      {
+        columnProps: { isLanding: true, name: 'Any Name' },
         expectedClass: 'border-l-blue-400',
-        description: 'landing column regardless of name'
+        description: 'landing column regardless of name',
       },
       // Todo/Backlog variations
-      { 
-        columnProps: { isLanding: false, name: 'todo' }, 
+      {
+        columnProps: { isLanding: false, name: 'todo' },
         expectedClass: 'border-l-gray-400',
-        description: 'lowercase todo'
+        description: 'lowercase todo',
       },
-      { 
-        columnProps: { isLanding: false, name: 'TODO ITEMS' }, 
+      {
+        columnProps: { isLanding: false, name: 'TODO ITEMS' },
         expectedClass: 'border-l-gray-400',
-        description: 'uppercase todo'
+        description: 'uppercase todo',
       },
-      { 
-        columnProps: { isLanding: false, name: 'Product Backlog' }, 
+      {
+        columnProps: { isLanding: false, name: 'Product Backlog' },
         expectedClass: 'border-l-gray-400',
-        description: 'backlog column'
+        description: 'backlog column',
       },
       // In-progress variations
-      { 
-        columnProps: { isLanding: false, name: 'In Progress' }, 
+      {
+        columnProps: { isLanding: false, name: 'In Progress' },
         expectedClass: 'border-l-yellow-400',
-        description: 'in progress column'
+        description: 'in progress column',
       },
-      { 
-        columnProps: { isLanding: false, name: 'Development' }, 
+      {
+        columnProps: { isLanding: false, name: 'Development' },
         expectedClass: 'border-l-yellow-400',
-        description: 'development column'
+        description: 'development column',
       },
-      { 
-        columnProps: { isLanding: false, name: 'Currently Doing' }, 
+      {
+        columnProps: { isLanding: false, name: 'Currently Doing' },
         expectedClass: 'border-l-yellow-400',
-        description: 'doing column'
+        description: 'doing column',
       },
       // Review/Testing variations
-      { 
-        columnProps: { isLanding: false, name: 'Code Review' }, 
+      {
+        columnProps: { isLanding: false, name: 'Code Review' },
         expectedClass: 'border-l-orange-400',
-        description: 'review column'
+        description: 'review column',
       },
-      { 
-        columnProps: { isLanding: false, name: 'Testing Phase' }, 
+      {
+        columnProps: { isLanding: false, name: 'Testing Phase' },
         expectedClass: 'border-l-orange-400',
-        description: 'testing column'
+        description: 'testing column',
       },
       // Done/Complete variations
-      { 
-        columnProps: { isLanding: false, name: 'Done' }, 
+      {
+        columnProps: { isLanding: false, name: 'Done' },
         expectedClass: 'border-l-green-400',
-        description: 'done column'
+        description: 'done column',
       },
-      { 
-        columnProps: { isLanding: false, name: 'Completed Tasks' }, 
+      {
+        columnProps: { isLanding: false, name: 'Completed Tasks' },
         expectedClass: 'border-l-green-400',
-        description: 'complete column'
+        description: 'complete column',
       },
       // Default case
-      { 
-        columnProps: { isLanding: false, name: 'Unknown Column Type' }, 
+      {
+        columnProps: { isLanding: false, name: 'Unknown Column Type' },
         expectedClass: 'border-l-gray-400',
-        description: 'unknown column type defaults to gray'
+        description: 'unknown column type defaults to gray',
       },
     ];
 
@@ -394,13 +406,13 @@ describe('TaskCard', () => {
         active: null,
         activatorEvent: null,
         activeNodeRect: null,
-        attributes: { 
-          role: 'button', 
-          'aria-describedby': 'DndDescribedBy-1', 
+        attributes: {
+          role: 'button',
+          'aria-describedby': 'DndDescribedBy-1',
           tabIndex: 0,
           'aria-disabled': false,
           'aria-pressed': undefined,
-          'aria-roledescription': 'Draggable'
+          'aria-roledescription': 'Draggable',
         } as any,
         listeners: { onPointerDown: vi.fn(), onKeyDown: vi.fn() },
         node: { current: null },
@@ -421,13 +433,13 @@ describe('TaskCard', () => {
         active: null,
         activatorEvent: null,
         activeNodeRect: null,
-        attributes: { 
-          role: 'button', 
-          'aria-describedby': 'DndDescribedBy-1', 
+        attributes: {
+          role: 'button',
+          'aria-describedby': 'DndDescribedBy-1',
           tabIndex: 0,
           'aria-disabled': false,
           'aria-pressed': undefined,
-          'aria-roledescription': 'Draggable'
+          'aria-roledescription': 'Draggable',
         } as any,
         listeners: { onPointerDown: vi.fn(), onKeyDown: vi.fn() },
         node: { current: null },
@@ -452,13 +464,13 @@ describe('TaskCard', () => {
       const { useDraggable } = await import('@dnd-kit/core');
       const mockSetNodeRef = vi.fn();
       vi.mocked(useDraggable).mockReturnValue({
-        attributes: { 
-          role: 'button', 
-          'aria-describedby': 'DndDescribedBy-1', 
+        attributes: {
+          role: 'button',
+          'aria-describedby': 'DndDescribedBy-1',
           tabIndex: 0,
           'aria-disabled': false,
           'aria-pressed': undefined,
-          'aria-roledescription': 'Draggable'
+          'aria-roledescription': 'Draggable',
         } as any,
         listeners: { onPointerDown: vi.fn(), onKeyDown: vi.fn() },
         setNodeRef: mockSetNodeRef,
@@ -513,7 +525,7 @@ describe('TaskCard', () => {
       const { container } = renderTaskCard();
       const taskCard = container.querySelector('[class*="p-4"]');
       expect(taskCard).toBeInTheDocument();
-      
+
       const contentArea = container.querySelector('[class*="mb-2"]');
       expect(contentArea).toBeInTheDocument();
     });
@@ -523,23 +535,27 @@ describe('TaskCard', () => {
   describe('Component composition and layout', () => {
     it('maintains proper layout hierarchy', () => {
       renderTaskCard();
-      
+
       // Main container
       const mainContainer = screen.getByRole('button');
       expect(mainContainer).toBeInTheDocument();
-      
+
       // Header section with title and stale badge
-      const headerSection = mainContainer.querySelector('[class*="flex items-start justify-between mb-2"]');
+      const headerSection = mainContainer.querySelector(
+        '[class*="flex items-start justify-between mb-2"]'
+      );
       expect(headerSection).toBeInTheDocument();
-      
+
       // Footer section with column badge and date
-      const footerSection = mainContainer.querySelector('[class*="flex items-center justify-between text-xs"]');
+      const footerSection = mainContainer.querySelector(
+        '[class*="flex items-center justify-between text-xs"]'
+      );
       expect(footerSection).toBeInTheDocument();
     });
 
     it('properly spaces elements within the card', () => {
       const { container } = renderTaskCard();
-      
+
       // Check for proper spacing classes
       expect(container.querySelector('[class*="mb-2"]')).toBeInTheDocument(); // Header spacing
       expect(container.querySelector('[class*="space-x-2"]')).toBeInTheDocument(); // Horizontal spacing
@@ -554,11 +570,11 @@ describe('TaskCard', () => {
       };
 
       const { container } = renderTaskCard(complexTask);
-      
+
       // Should have both stale badge and update reason indicator
       expect(screen.getByText('Stale')).toBeInTheDocument();
       expect(screen.getByTitle('Has update reason')).toBeInTheDocument();
-      
+
       // Should maintain proper layout
       const staleBadge = container.querySelector('[class*="bg-red-100"]');
       const updateIndicator = container.querySelector('[class*="bg-blue-400 rounded-full"]');

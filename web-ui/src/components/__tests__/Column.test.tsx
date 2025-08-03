@@ -71,7 +71,7 @@ describe('Column', () => {
     vi.clearAllMocks();
     const { useDroppable } = await import('@dnd-kit/core');
     const { useDragAndDrop } = await import('../../contexts/DragAndDropContext');
-    
+
     vi.mocked(useDroppable).mockReturnValue({
       setNodeRef: vi.fn(),
       isOver: false,
@@ -89,11 +89,7 @@ describe('Column', () => {
     vi.clearAllTimers();
   });
 
-  const renderColumn = (
-    column = baseColumn, 
-    onTaskClick = mockOnTaskClick,
-    contextProps = {}
-  ) => {
+  const renderColumn = (column = baseColumn, onTaskClick = mockOnTaskClick, contextProps = {}) => {
     const user = userEvent.setup();
     return {
       user,
@@ -101,7 +97,7 @@ describe('Column', () => {
         <DndContext {...contextProps}>
           <Column column={column} onTaskClick={onTaskClick} />
         </DndContext>
-      )
+      ),
     };
   };
 
@@ -142,15 +138,15 @@ describe('Column', () => {
 
     it('maintains proper semantic structure', () => {
       const { container } = renderColumn();
-      
+
       // Check main column container
       const columnContainer = container.querySelector('[class*="flex flex-col"]');
       expect(columnContainer).toBeInTheDocument();
-      
+
       // Check header section
       const headerSection = container.querySelector('[class*="border-l-4"]');
       expect(headerSection).toBeInTheDocument();
-      
+
       // Check content section
       const contentSection = container.querySelector('[class*="overflow-visible flex-1"]');
       expect(contentSection).toBeInTheDocument();
@@ -187,7 +183,9 @@ describe('Column', () => {
         isLanding: true,
       };
       const { container } = renderColumn(landingColumn);
-      const header = container.querySelector('[class*="bg-blue-100 border-blue-200 text-blue-800"]');
+      const header = container.querySelector(
+        '[class*="bg-blue-100 border-blue-200 text-blue-800"]'
+      );
       expect(header).toBeInTheDocument();
     });
 
@@ -226,7 +224,7 @@ describe('Column', () => {
       renderColumn();
       fireEvent.click(screen.getByText('First Task'));
       fireEvent.click(screen.getByText('Second Task'));
-      
+
       expect(mockOnTaskClick).toHaveBeenCalledWith('task-1');
       expect(mockOnTaskClick).toHaveBeenCalledWith('task-2');
       expect(mockOnTaskClick).toHaveBeenCalledTimes(2);
@@ -235,12 +233,12 @@ describe('Column', () => {
     it('handles rapid task clicks correctly', () => {
       renderColumn();
       const firstTask = screen.getByText('First Task');
-      
+
       // Click rapidly
       fireEvent.click(firstTask);
       fireEvent.click(firstTask);
       fireEvent.click(firstTask);
-      
+
       expect(mockOnTaskClick).toHaveBeenCalledTimes(3);
       expect(mockOnTaskClick).toHaveBeenCalledWith('task-1');
     });
@@ -250,7 +248,7 @@ describe('Column', () => {
       const taskList = container.querySelector('ul');
       expect(taskList).toBeInTheDocument();
       expect(taskList).toHaveClass('space-y-3');
-      
+
       const taskItems = container.querySelectorAll('li');
       expect(taskItems).toHaveLength(2);
     });
@@ -266,13 +264,15 @@ describe('Column', () => {
     });
 
     it('handles large number of tasks efficiently', () => {
-      const manyTasks = Array(50).fill(null).map((_, i) => ({
-        id: `task-${i + 1}`,
-        title: `Task ${i + 1}`,
-        position: i + 1,
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
-      }));
+      const manyTasks = Array(50)
+        .fill(null)
+        .map((_, i) => ({
+          id: `task-${i + 1}`,
+          title: `Task ${i + 1}`,
+          position: i + 1,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+        }));
 
       const columnWithManyTasks: ColumnWithTasks = {
         ...baseColumn,
@@ -347,7 +347,9 @@ describe('Column', () => {
         tasks: [],
       };
       const { container } = renderColumn(emptyColumn);
-      const dropZone = container.querySelector('[class*="bg-indigo-50 border-indigo-300 text-indigo-600"]');
+      const dropZone = container.querySelector(
+        '[class*="bg-indigo-50 border-indigo-300 text-indigo-600"]'
+      );
       expect(dropZone).toBeInTheDocument();
     });
   });
@@ -367,13 +369,15 @@ describe('Column', () => {
     it('shows near capacity warning at 80% threshold', () => {
       const nearCapacityColumn: ColumnWithTasks = {
         ...baseColumn,
-        tasks: Array(4).fill(null).map((_, i) => ({
-          id: `task-${i + 1}`,
-          title: `Task ${i + 1}`,
-          position: i + 1,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z',
-        })),
+        tasks: Array(4)
+          .fill(null)
+          .map((_, i) => ({
+            id: `task-${i + 1}`,
+            title: `Task ${i + 1}`,
+            position: i + 1,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+          })),
         wipLimit: 5,
       };
       renderColumn(nearCapacityColumn);
@@ -384,13 +388,15 @@ describe('Column', () => {
     it('shows at capacity warning when exactly at limit', () => {
       const atCapacityColumn: ColumnWithTasks = {
         ...baseColumn,
-        tasks: Array(5).fill(null).map((_, i) => ({
-          id: `task-${i + 1}`,
-          title: `Task ${i + 1}`,
-          position: i + 1,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z',
-        })),
+        tasks: Array(5)
+          .fill(null)
+          .map((_, i) => ({
+            id: `task-${i + 1}`,
+            title: `Task ${i + 1}`,
+            position: i + 1,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+          })),
         wipLimit: 5,
       };
       renderColumn(atCapacityColumn);
@@ -401,13 +407,15 @@ describe('Column', () => {
     it('shows over capacity warning when exceeding limit', () => {
       const overCapacityColumn: ColumnWithTasks = {
         ...baseColumn,
-        tasks: Array(6).fill(null).map((_, i) => ({
-          id: `task-${i + 1}`,
-          title: `Task ${i + 1}`,
-          position: i + 1,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z',
-        })),
+        tasks: Array(6)
+          .fill(null)
+          .map((_, i) => ({
+            id: `task-${i + 1}`,
+            title: `Task ${i + 1}`,
+            position: i + 1,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+          })),
         wipLimit: 5,
       };
       renderColumn(overCapacityColumn);
@@ -429,13 +437,15 @@ describe('Column', () => {
     it('calculates near capacity threshold correctly for different limits', () => {
       const column10Limit: ColumnWithTasks = {
         ...baseColumn,
-        tasks: Array(8).fill(null).map((_, i) => ({
-          id: `task-${i + 1}`,
-          title: `Task ${i + 1}`,
-          position: i + 1,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z',
-        })),
+        tasks: Array(8)
+          .fill(null)
+          .map((_, i) => ({
+            id: `task-${i + 1}`,
+            title: `Task ${i + 1}`,
+            position: i + 1,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+          })),
         wipLimit: 10, // 8/10 = 80%
       };
       renderColumn(column10Limit);
@@ -447,65 +457,65 @@ describe('Column', () => {
   // Column header color system
   describe('Column header color system', () => {
     const headerColorTestCases = [
-      { 
-        name: 'Landing Column Override', 
+      {
+        name: 'Landing Column Override',
         column: { ...baseColumn, isLanding: true, name: 'Should Be Blue Regardless' },
-        expectedClasses: ['bg-blue-100', 'border-blue-200', 'text-blue-800'] 
+        expectedClasses: ['bg-blue-100', 'border-blue-200', 'text-blue-800'],
       },
-      { 
-        name: 'Todo Column (lowercase)', 
+      {
+        name: 'Todo Column (lowercase)',
         column: { ...baseColumn, name: 'todo items' },
-        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'] 
+        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'],
       },
-      { 
-        name: 'Todo Column (mixed case)', 
+      {
+        name: 'Todo Column (mixed case)',
         column: { ...baseColumn, name: 'To Do Tasks' },
-        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'] 
+        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'],
       },
-      { 
-        name: 'Backlog Column', 
+      {
+        name: 'Backlog Column',
         column: { ...baseColumn, name: 'Product Backlog' },
-        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'] 
+        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'],
       },
-      { 
-        name: 'In Progress Column', 
+      {
+        name: 'In Progress Column',
         column: { ...baseColumn, name: 'Work In Progress' },
-        expectedClasses: ['bg-yellow-100', 'border-yellow-200', 'text-yellow-800'] 
+        expectedClasses: ['bg-yellow-100', 'border-yellow-200', 'text-yellow-800'],
       },
-      { 
-        name: 'Development Column', 
+      {
+        name: 'Development Column',
         column: { ...baseColumn, name: 'Active Development' },
-        expectedClasses: ['bg-yellow-100', 'border-yellow-200', 'text-yellow-800'] 
+        expectedClasses: ['bg-yellow-100', 'border-yellow-200', 'text-yellow-800'],
       },
-      { 
-        name: 'Doing Column', 
+      {
+        name: 'Doing Column',
         column: { ...baseColumn, name: 'Currently Doing' },
-        expectedClasses: ['bg-yellow-100', 'border-yellow-200', 'text-yellow-800'] 
+        expectedClasses: ['bg-yellow-100', 'border-yellow-200', 'text-yellow-800'],
       },
-      { 
-        name: 'Review Column', 
+      {
+        name: 'Review Column',
         column: { ...baseColumn, name: 'Code Review' },
-        expectedClasses: ['bg-orange-100', 'border-orange-200', 'text-orange-800'] 
+        expectedClasses: ['bg-orange-100', 'border-orange-200', 'text-orange-800'],
       },
-      { 
-        name: 'Testing Column', 
+      {
+        name: 'Testing Column',
         column: { ...baseColumn, name: 'QA Testing' },
-        expectedClasses: ['bg-orange-100', 'border-orange-200', 'text-orange-800'] 
+        expectedClasses: ['bg-orange-100', 'border-orange-200', 'text-orange-800'],
       },
-      { 
-        name: 'Done Column', 
+      {
+        name: 'Done Column',
         column: { ...baseColumn, name: 'Done' },
-        expectedClasses: ['bg-green-100', 'border-green-200', 'text-green-800'] 
+        expectedClasses: ['bg-green-100', 'border-green-200', 'text-green-800'],
       },
-      { 
-        name: 'Complete Column', 
+      {
+        name: 'Complete Column',
         column: { ...baseColumn, name: 'Completed Items' },
-        expectedClasses: ['bg-green-100', 'border-green-200', 'text-green-800'] 
+        expectedClasses: ['bg-green-100', 'border-green-200', 'text-green-800'],
       },
-      { 
-        name: 'Unknown Column Type', 
+      {
+        name: 'Unknown Column Type',
         column: { ...baseColumn, name: 'Custom Workflow Stage' },
-        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'] 
+        expectedClasses: ['bg-gray-100', 'border-gray-200', 'text-gray-800'],
       },
     ];
 
@@ -514,7 +524,7 @@ describe('Column', () => {
         const { container } = renderColumn(column);
         const header = container.querySelector('div[class*="border-l-4"]');
         expect(header).toBeInTheDocument();
-        
+
         expectedClasses.forEach(className => {
           expect(header).toHaveClass(className);
         });
@@ -523,14 +533,16 @@ describe('Column', () => {
 
     it('applies proper header structure and spacing', () => {
       const { container } = renderColumn();
-      const header = container.querySelector('[class*="flex justify-between items-center p-4 rounded-t-xl border-b border-l-4"]');
+      const header = container.querySelector(
+        '[class*="flex justify-between items-center p-4 rounded-t-xl border-b border-l-4"]'
+      );
       expect(header).toBeInTheDocument();
     });
 
     it('handles extremely long column names in header', () => {
       const longNameColumn: ColumnWithTasks = {
         ...baseColumn,
-        name: 'This is an extremely long column name that should be handled gracefully without breaking the layout or causing overflow issues in the header section'
+        name: 'This is an extremely long column name that should be handled gracefully without breaking the layout or causing overflow issues in the header section',
       };
       const { container } = renderColumn(longNameColumn);
       const header = container.querySelector('h3');
@@ -571,7 +583,7 @@ describe('Column', () => {
     it('applies drop indicator styles when dragging over column', async () => {
       const { useDroppable } = await import('@dnd-kit/core');
       const { useDragAndDrop } = await import('../../contexts/DragAndDropContext');
-      
+
       vi.mocked(useDroppable).mockReturnValue({
         setNodeRef: vi.fn(),
         isOver: true,
@@ -585,14 +597,16 @@ describe('Column', () => {
       });
 
       const { container } = renderColumn();
-      const columnContainer = container.querySelector('[class*="border-2 border-dashed border-indigo-500 bg-indigo-50"]');
+      const columnContainer = container.querySelector(
+        '[class*="border-2 border-dashed border-indigo-500 bg-indigo-50"]'
+      );
       expect(columnContainer).toBeInTheDocument();
     });
 
     it('does not apply drop styles when not dragging', async () => {
       const { useDroppable } = await import('@dnd-kit/core');
       const { useDragAndDrop } = await import('../../contexts/DragAndDropContext');
-      
+
       vi.mocked(useDroppable).mockReturnValue({
         setNodeRef: vi.fn(),
         isOver: true,
@@ -606,7 +620,9 @@ describe('Column', () => {
       });
 
       const { container } = renderColumn();
-      const columnContainer = container.querySelector('[class*="border-2 border-dashed border-indigo-500"]');
+      const columnContainer = container.querySelector(
+        '[class*="border-2 border-dashed border-indigo-500"]'
+      );
       expect(columnContainer).not.toBeInTheDocument();
     });
 
@@ -635,7 +651,7 @@ describe('Column', () => {
       const { container } = renderColumn();
       const heading = screen.getByRole('heading', { name: 'To Do' });
       expect(heading).toBeInTheDocument();
-      
+
       // Task list should be properly structured
       const taskList = container.querySelector('ul');
       if (taskList) {
@@ -645,11 +661,11 @@ describe('Column', () => {
 
     it('handles keyboard navigation properly', () => {
       renderColumn();
-      
+
       // Tasks should be focusable with keyboard
       const taskCards = screen.getAllByRole('button');
       expect(taskCards.length).toBeGreaterThan(0);
-      
+
       // Each task card should have proper tabIndex
       taskCards.forEach(card => {
         expect(card).toHaveAttribute('tabIndex', '0');
@@ -658,18 +674,18 @@ describe('Column', () => {
 
     it('maintains proper contrast ratios for accessibility', () => {
       const { container } = renderColumn();
-      
+
       // Check that text colors have sufficient contrast
       const heading = container.querySelector('h3');
       expect(heading).toHaveClass('text-base', 'font-bold');
-      
+
       const capacityIndicator = screen.getByText('2 / 5');
       expect(capacityIndicator).toHaveClass('text-gray-700');
     });
 
     it('handles focus management correctly', async () => {
       renderColumn();
-      
+
       // Should be able to focus on interactive elements
       const tasks = screen.getAllByText(/Task/);
       for (const task of tasks) {
@@ -682,11 +698,11 @@ describe('Column', () => {
 
     it('provides proper semantic structure for assistive technologies', () => {
       const { container } = renderColumn();
-      
+
       // Check semantic HTML structure - get specifically the column heading
       const columnHeading = screen.getByRole('heading', { name: 'To Do' });
       expect(columnHeading).toBeInTheDocument();
-      
+
       const list = container.querySelector('ul');
       if (list) {
         const listItems = list.querySelectorAll('li');
@@ -702,7 +718,7 @@ describe('Column', () => {
         ...baseColumn,
         tasks: null as any,
       };
-      
+
       expect(() => renderColumn(columnWithNullTasks)).not.toThrow();
     });
 
@@ -721,7 +737,7 @@ describe('Column', () => {
           undefined as any,
         ].filter(Boolean),
       };
-      
+
       expect(() => renderColumn(columnWithInvalidTasks)).not.toThrow();
     });
 
@@ -776,7 +792,9 @@ describe('Column', () => {
         name: 'Column with émojis 🚀 & special chars: <>&"\'`',
       };
       renderColumn(specialCharColumn);
-      const columnHeading = screen.getByRole('heading', { name: 'Column with émojis 🚀 & special chars: <>&"\'`' });
+      const columnHeading = screen.getByRole('heading', {
+        name: 'Column with émojis 🚀 & special chars: <>&"\'`',
+      });
       expect(columnHeading).toBeInTheDocument();
     });
   });
@@ -810,13 +828,15 @@ describe('Column', () => {
       // Update to near capacity
       const nearCapacityColumn: ColumnWithTasks = {
         ...baseColumn,
-        tasks: Array(4).fill(null).map((_, i) => ({
-          id: `task-${i + 1}`,
-          title: `Task ${i + 1}`,
-          position: i + 1,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z',
-        })),
+        tasks: Array(4)
+          .fill(null)
+          .map((_, i) => ({
+            id: `task-${i + 1}`,
+            title: `Task ${i + 1}`,
+            position: i + 1,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+          })),
       };
 
       rerender(
@@ -850,17 +870,19 @@ describe('Column', () => {
 
     it('handles rapid task additions and removals', () => {
       const { rerender } = renderColumn();
-      
+
       // Add many tasks
       const manyTasksColumn: ColumnWithTasks = {
         ...baseColumn,
-        tasks: Array(20).fill(null).map((_, i) => ({
-          id: `task-${i + 1}`,
-          title: `Task ${i + 1}`,
-          position: i + 1,
-          createdAt: '2024-01-01T00:00:00Z',
-          updatedAt: '2024-01-01T00:00:00Z',
-        })),
+        tasks: Array(20)
+          .fill(null)
+          .map((_, i) => ({
+            id: `task-${i + 1}`,
+            title: `Task ${i + 1}`,
+            position: i + 1,
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+          })),
       };
 
       rerender(

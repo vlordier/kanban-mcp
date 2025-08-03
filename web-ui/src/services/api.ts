@@ -34,13 +34,8 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     const errorData: ApiError = await response.json().catch(() => ({
       error: 'Unknown error occurred',
     }));
-    
-    throw new ApiException(
-      errorData.error,
-      response.status,
-      errorData.errorId,
-      errorData.details
-    );
+
+    throw new ApiException(errorData.error, response.status, errorData.errorId, errorData.details);
   }
 
   return response.json();
@@ -50,7 +45,9 @@ export async function getAllBoards(): Promise<Board[]> {
   return apiRequest<Board[]>('/boards');
 }
 
-export async function getBoardWithColumnsAndTasks(boardId: string): Promise<{ board: Board; columns: ColumnWithTasks[] }> {
+export async function getBoardWithColumnsAndTasks(
+  boardId: string
+): Promise<{ board: Board; columns: ColumnWithTasks[] }> {
   return apiRequest<{ board: Board; columns: ColumnWithTasks[] }>(`/boards/${boardId}`);
 }
 
@@ -58,7 +55,11 @@ export async function getTaskById(taskId: string): Promise<Task> {
   return apiRequest<Task>(`/tasks/${taskId}`);
 }
 
-export async function moveTask(taskId: string, targetColumnId: string, reason?: string): Promise<{
+export async function moveTask(
+  taskId: string,
+  targetColumnId: string,
+  reason?: string
+): Promise<{
   success: boolean;
   message: string;
   taskId: string;
@@ -71,7 +72,10 @@ export async function moveTask(taskId: string, targetColumnId: string, reason?: 
   });
 }
 
-export async function updateTask(taskId: string, content: string): Promise<{
+export async function updateTask(
+  taskId: string,
+  content: string
+): Promise<{
   success: boolean;
   message: string;
   task: Task;
@@ -82,7 +86,10 @@ export async function updateTask(taskId: string, content: string): Promise<{
   });
 }
 
-export async function createBoard(name: string, goal: string): Promise<{
+export async function createBoard(
+  name: string,
+  goal: string
+): Promise<{
   success: boolean;
   message: string;
   boardId: string;
@@ -93,7 +100,11 @@ export async function createBoard(name: string, goal: string): Promise<{
   });
 }
 
-export async function createTask(columnId: string, title: string, content: string): Promise<{
+export async function createTask(
+  columnId: string,
+  title: string,
+  content: string
+): Promise<{
   success: boolean;
   message: string;
   task: Task;
@@ -127,24 +138,23 @@ export async function deleteBoard(boardId: string): Promise<{
 
 export async function exportDatabase(): Promise<Blob> {
   const response = await fetch(`${API_BASE_URL}/export`);
-  
+
   if (!response.ok) {
     const errorData: ApiError = await response.json().catch(() => ({
       error: 'Failed to export database',
     }));
-    
-    throw new ApiException(
-      errorData.error,
-      response.status,
-      errorData.errorId,
-      errorData.details
-    );
+
+    throw new ApiException(errorData.error, response.status, errorData.errorId, errorData.details);
   }
 
   return response.blob();
 }
 
-export async function importDatabase(data: { boards: Board[]; columns: Column[]; tasks: Task[] }): Promise<{
+export async function importDatabase(data: {
+  boards: Board[];
+  columns: Column[];
+  tasks: Task[];
+}): Promise<{
   success: boolean;
   message: string;
 }> {

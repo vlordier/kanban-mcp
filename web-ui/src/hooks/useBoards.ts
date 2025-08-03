@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
-  getAllBoards, 
-  createBoard, 
-  deleteBoard, 
-  getBoardWithColumnsAndTasks 
+import {
+  getAllBoards,
+  createBoard,
+  deleteBoard,
+  getBoardWithColumnsAndTasks,
 } from '../services/api';
 import { useApiError } from './useApiError';
 
@@ -19,12 +19,11 @@ export function useBoards() {
   });
 
   const createBoardMutation = useMutation({
-    mutationFn: ({ name, goal }: { name: string; goal: string }) => 
-      createBoard(name, goal),
+    mutationFn: ({ name, goal }: { name: string; goal: string }) => createBoard(name, goal),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
     },
-    onError: (error) => handleApiError(error, 'Failed to create board'),
+    onError: error => handleApiError(error, 'Failed to create board'),
   });
 
   const deleteBoardMutation = useMutation({
@@ -32,7 +31,7 @@ export function useBoards() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
     },
-    onError: (error) => handleApiError(error, 'Failed to delete board'),
+    onError: error => handleApiError(error, 'Failed to delete board'),
   });
 
   return {

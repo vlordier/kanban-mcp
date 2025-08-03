@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  XMarkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PencilIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTaskById, updateTask, deleteTask } from '../services/api';
 import MarkdownRenderer from './MarkdownRenderer';
@@ -15,13 +21,13 @@ interface TaskDetailProps {
   hasNextTask?: boolean;
 }
 
-export default function TaskDetail({ 
-  taskId, 
-  onClose, 
-  onPrevTask, 
-  onNextTask, 
-  hasPrevTask = false, 
-  hasNextTask = false 
+export default function TaskDetail({
+  taskId,
+  onClose,
+  onPrevTask,
+  onNextTask,
+  hasPrevTask = false,
+  hasNextTask = false,
 }: TaskDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
@@ -29,7 +35,11 @@ export default function TaskDetail({
   const queryClient = useQueryClient();
   const notifications = useNotifications();
 
-  const { data: task, isLoading, error } = useQuery({
+  const {
+    data: task,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => (taskId ? getTaskById(taskId) : null),
     enabled: !!taskId,
@@ -43,13 +53,13 @@ export default function TaskDetail({
   }, [task]);
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ taskId, content }: { taskId: string; content: string }) => 
+    mutationFn: ({ taskId, content }: { taskId: string; content: string }) =>
       updateTask(taskId, content),
     onSuccess: () => {
       // Invalidate and refetch the task query to update the UI
       queryClient.invalidateQueries({ queryKey: ['task', taskId] as const });
       setIsEditing(false);
-    }
+    },
   });
 
   const deleteTaskMutation = useMutation({
@@ -60,9 +70,12 @@ export default function TaskDetail({
       notifications.success('Task deleted successfully');
       onClose();
     },
-    onError: (error) => {
-      notifications.error('Failed to delete task', error instanceof Error ? error.message : 'Unknown error');
-    }
+    onError: error => {
+      notifications.error(
+        'Failed to delete task',
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    },
   });
 
   const handleEditClick = () => {
@@ -181,7 +194,8 @@ export default function TaskDetail({
                       <div className="flex">
                         <div className="ml-3">
                           <p className="text-sm text-red-700">
-                            Error loading task: {error instanceof Error ? error.message : 'Unknown error'}
+                            Error loading task:{' '}
+                            {error instanceof Error ? error.message : 'Unknown error'}
                           </p>
                         </div>
                       </div>
@@ -192,7 +206,7 @@ export default function TaskDetail({
                         <div className="flex flex-col gap-4">
                           <textarea
                             value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
+                            onChange={e => setEditContent(e.target.value)}
                             className="w-full h-64 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                           />
                           <div className="flex justify-end space-x-2">
@@ -217,7 +231,10 @@ export default function TaskDetail({
                               <div className="flex">
                                 <div className="ml-3">
                                   <p className="text-sm text-red-700">
-                                    Error updating task: {updateTaskMutation.error instanceof Error ? updateTaskMutation.error.message : 'Unknown error'}
+                                    Error updating task:{' '}
+                                    {updateTaskMutation.error instanceof Error
+                                      ? updateTaskMutation.error.message
+                                      : 'Unknown error'}
                                   </p>
                                 </div>
                               </div>
@@ -226,9 +243,9 @@ export default function TaskDetail({
                         </div>
                       ) : (
                         <div>
-                          <MarkdownRenderer 
-                            content={task.content} 
-                            className="mt-2 text-sm text-gray-900" 
+                          <MarkdownRenderer
+                            content={task.content}
+                            className="mt-2 text-sm text-gray-900"
                           />
                         </div>
                       )}
@@ -237,11 +254,15 @@ export default function TaskDetail({
                         <dl className="mt-2 divide-y divide-gray-200 border-t border-b border-gray-200">
                           <div className="flex justify-between py-3 text-sm">
                             <dt className="text-gray-500">Created</dt>
-                            <dd className="text-gray-900">{new Date(task.created_at).toLocaleString()}</dd>
+                            <dd className="text-gray-900">
+                              {new Date(task.created_at).toLocaleString()}
+                            </dd>
                           </div>
                           <div className="flex justify-between py-3 text-sm">
                             <dt className="text-gray-500">Updated</dt>
-                            <dd className="text-gray-900">{new Date(task.updated_at).toLocaleString()}</dd>
+                            <dd className="text-gray-900">
+                              {new Date(task.updated_at).toLocaleString()}
+                            </dd>
                           </div>
                           {task.update_reason && (
                             <div className="flex flex-col justify-between py-3 text-sm">
@@ -262,23 +283,16 @@ export default function TaskDetail({
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <Dialog
-          open={showDeleteConfirm}
-          onClose={handleCancelDelete}
-          className="relative z-[60]"
-        >
+        <Dialog open={showDeleteConfirm} onClose={handleCancelDelete} className="relative z-[60]">
           <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-          
+
           <div className="fixed inset-0 flex items-center justify-center p-4">
             <DialogPanel className="mx-auto max-w-sm rounded bg-white p-6 shadow-xl">
-              <DialogTitle className="text-lg font-medium text-gray-900">
-                Delete Task
-              </DialogTitle>
-              
+              <DialogTitle className="text-lg font-medium text-gray-900">Delete Task</DialogTitle>
+
               <div className="mt-2">
                 <p className="text-sm text-gray-500">
-                  Are you sure you want to delete "{task?.title}"? 
-                  This action cannot be undone.
+                  Are you sure you want to delete "{task?.title}"? This action cannot be undone.
                 </p>
               </div>
 

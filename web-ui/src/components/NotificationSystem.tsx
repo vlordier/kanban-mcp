@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { XMarkIcon, CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import {
+  XMarkIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
 
 interface Notification {
   id: string;
@@ -22,7 +27,7 @@ export function NotificationSystem() {
     // Listen for real-time board updates
     const handleBoardUpdates = (event: CustomEvent) => {
       const { changes, timestamp } = event.detail;
-      
+
       changes.forEach((change: any) => {
         let title = '';
         let message = '';
@@ -52,7 +57,7 @@ export function NotificationSystem() {
           title,
           message,
           timestamp,
-          isRead: false
+          isRead: false,
         };
 
         setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep max 10 notifications
@@ -69,16 +74,16 @@ export function NotificationSystem() {
         title: 'Board Synced',
         message: 'Your boards are now synced across all devices',
         timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-        isRead: false
+        isRead: false,
       },
       {
         id: 'sample-2',
         type: 'info',
         title: 'Real-time Updates Active',
-        message: 'You\'ll receive live updates as changes occur',
+        message: "You'll receive live updates as changes occur",
         timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-        isRead: true
-      }
+        isRead: true,
+      },
     ];
 
     setNotifications(sampleNotifications);
@@ -89,10 +94,8 @@ export function NotificationSystem() {
   }, []);
 
   const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
+    setNotifications(prev =>
+      prev.map(notif => (notif.id === id ? { ...notif, isRead: true } : notif))
     );
   };
 
@@ -119,7 +122,7 @@ export function NotificationSystem() {
     const now = new Date();
     const diff = now.getTime() - timestamp.getTime();
     const minutes = Math.floor(diff / 60000);
-    
+
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
@@ -137,7 +140,12 @@ export function NotificationSystem() {
         title="Notifications"
       >
         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5v-5zM11 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v6" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M15 17h5l-5 5v-5zM11 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v6"
+          />
         </svg>
         {unreadCount > 0 && (
           <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
@@ -150,22 +158,19 @@ export function NotificationSystem() {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40" 
-            onClick={() => setIsOpen(false)}
-          />
-          
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+
           {/* Panel */}
           <div className="absolute right-0 top-full mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl ring-1 ring-gray-200 dark:ring-gray-700 z-50 animate-slide-up">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Notifications
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
               <div className="flex items-center space-x-2">
                 {unreadCount > 0 && (
                   <button
-                    onClick={() => setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))}
+                    onClick={() =>
+                      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+                    }
                     className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
                   >
                     Mark all read
@@ -184,14 +189,24 @@ export function NotificationSystem() {
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                  <svg className="mx-auto h-12 w-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M15 17h5l-5 5v-5zM11 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v6" />
+                  <svg
+                    className="mx-auto h-12 w-12 mb-4 opacity-50"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1"
+                      d="M15 17h5l-5 5v-5zM11 17H4a2 2 0 01-2-2V5a2 2 0 012-2h16a2 2 0 012 2v6"
+                    />
                   </svg>
                   <p className="text-sm">No notifications yet</p>
                   <p className="text-xs opacity-75 mt-1">You'll see real-time updates here</p>
                 </div>
               ) : (
-                notifications.map((notification) => (
+                notifications.map(notification => (
                   <div
                     key={notification.id}
                     className={`p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 ${
@@ -200,15 +215,17 @@ export function NotificationSystem() {
                     onClick={() => markAsRead(notification.id)}
                   >
                     <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        {getIcon(notification.type)}
-                      </div>
+                      <div className="flex-shrink-0 mt-0.5">{getIcon(notification.type)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className={`text-sm font-medium ${
-                              !notification.isRead ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'
-                            }`}>
+                            <p
+                              className={`text-sm font-medium ${
+                                !notification.isRead
+                                  ? 'text-gray-900 dark:text-white'
+                                  : 'text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
                               {notification.title}
                             </p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -223,7 +240,7 @@ export function NotificationSystem() {
                               <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
                             )}
                             <button
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
                                 dismissNotification(notification.id);
                               }}
@@ -235,7 +252,7 @@ export function NotificationSystem() {
                         </div>
                         {notification.action && (
                           <button
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               notification.action!.onClick();
                             }}

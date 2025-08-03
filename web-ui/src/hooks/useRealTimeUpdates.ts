@@ -12,17 +12,17 @@ export function useRealTimeUpdates() {
       try {
         // Get fresh data from server
         const freshBoards = await getAllBoards();
-        
+
         // Get cached data
         const cachedBoards = queryClient.getQueryData(['boards']);
-        
+
         // Check if data has changed
         if (JSON.stringify(freshBoards) !== JSON.stringify(cachedBoards)) {
           console.log('🔄 Real-time update detected, refreshing data...');
-          
+
           // Update cache with fresh data
           queryClient.setQueryData(['boards'], freshBoards);
-          
+
           // Show notification for changes
           const now = new Date();
           if (cachedBoards && freshBoards) {
@@ -30,12 +30,14 @@ export function useRealTimeUpdates() {
             const changes = detectChanges(cachedBoards as any[], freshBoards);
             if (changes.length > 0) {
               // Emit custom event for notifications
-              window.dispatchEvent(new CustomEvent('boardsUpdated', { 
-                detail: { changes, timestamp: now }
-              }));
+              window.dispatchEvent(
+                new CustomEvent('boardsUpdated', {
+                  detail: { changes, timestamp: now },
+                })
+              );
             }
           }
-          
+
           lastUpdateRef.current = now;
         }
       } catch (error) {
@@ -59,7 +61,7 @@ export function useRealTimeUpdates() {
 
   return {
     lastUpdate: lastUpdateRef.current,
-    isPolling: !!intervalRef.current
+    isPolling: !!intervalRef.current,
   };
 }
 

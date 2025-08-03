@@ -9,12 +9,14 @@ export default defineConfig({
   server: {
     port: 3000,
     // Only enable proxy when not running E2E tests (which use mocked APIs)
-    proxy: process.env.PLAYWRIGHT_TEST ? {} : {
-      '/api': {
-        target: 'http://localhost:8221',
-        changeOrigin: true,
-      },
-    },
+    proxy: process.env.PLAYWRIGHT_TEST
+      ? {}
+      : {
+          '/api': {
+            target: 'http://localhost:8221',
+            changeOrigin: true,
+          },
+        },
   },
   build: {
     outDir: 'dist',
