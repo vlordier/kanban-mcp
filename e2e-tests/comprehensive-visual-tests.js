@@ -32,10 +32,9 @@ class VisualTestSuite {
       }
     });
 
-    // Launch browser
-    this.browser = await puppeteer.launch({
+    // Configure browser launch options
+    const launchOptions = {
       headless: 'new',
-      executablePath: process.env.CHROME_EXECUTABLE_PATH,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -45,7 +44,18 @@ class VisualTestSuite {
         '--no-first-run',
         '--disable-default-apps'
       ]
-    });
+    };
+
+    // Only set executablePath if explicitly provided (for CI/CD flexibility)
+    if (process.env.CHROME_EXECUTABLE_PATH) {
+      launchOptions.executablePath = process.env.CHROME_EXECUTABLE_PATH;
+      console.log('Using custom Chrome executable:', process.env.CHROME_EXECUTABLE_PATH);
+    } else {
+      console.log('Using Puppeteer bundled Chromium');
+    }
+
+    // Launch browser
+    this.browser = await puppeteer.launch(launchOptions);
 
     this.page = await this.browser.newPage();
     await this.page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
