@@ -2,20 +2,18 @@ import { Link } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { PlusIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNotifications } from './NotificationContainer';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
-import { useBoards } from '../hooks/useBoards';
 import { useImportExport } from '../hooks/useImportExport';
+import { getAllBoards, createBoard, deleteBoard } from '../services/api';
 import { NotificationSystem } from './NotificationSystem';
 
 export default function BoardList() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   // Import/Export states
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importData, setImportData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +27,7 @@ export default function BoardList() {
   const [isDark, setIsDark] = useDarkMode();
   const queryClient = useQueryClient();
   const notifications = useNotifications();
+  const { exportDatabase: handleExport, importDatabase: handleImport, handleFileImport, isExporting, isImporting } = useImportExport();
   
   // Enable real-time updates
   useRealTimeUpdates();
@@ -47,58 +46,39 @@ export default function BoardList() {
       setNewBoardGoal('');
       notifications.success('Board created successfully');
     },
-    onError: (error) => {
-      notifications.error('Failed to create board', error instanceof Error ? error.message : 'Unknown error');
+    onError: (error: Error) => {
+      notifications.error('Failed to create board', error.message);
     }
   });
+
+  const deleteBoardMutation = useMutation({
+    mutationFn: deleteBoard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+      setIsDeleteDialogOpen(false);
+      setBoardToDelete(null);
+      notifications.success('Board deleted successfully');
+    },
+    onError: (error: Error) => {
+      notifications.error('Failed to delete board', error.message);
+    }
+  });
+
+  const isDeleting = deleteBoardMutation.isPending;
 
   const handleDeleteClick = (boardId: string, boardName: string) => {
     setBoardToDelete({ id: boardId, name: boardName });
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (!boardToDelete) return;
-    
-    try {
-      setIsDeleting(true);
-      await deleteBoard(boardToDelete.id);
-      // Invalidate the boards query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['boards'] });
-      notifications.success('Board deleted successfully');
-    } catch (error) {
-      console.error('Error deleting board:', error);
-      notifications.error('Failed to delete board', error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
-      setBoardToDelete(null);
-    }
+    deleteBoardMutation.mutate(boardToDelete.id);
   };
 
-  // Import/Export functionality
-  const handleExport = async () => {
-    try {
-      setIsExporting(true);
-      const blob = await exportDatabase();
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `kanban-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      notifications.success('Database exported successfully');
-    } catch (error) {
-      console.error('Error exporting database:', error);
-      notifications.error('Failed to export database', 'Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
+  // Export/Import event handlers
+  const handleExportClick = () => {
+    handleExport();
   };
 
   const handleImportClick = () => {
@@ -110,23 +90,13 @@ export default function BoardList() {
     if (!file) return;
 
     try {
-      setIsImporting(true);
-      const text = await file.text();
-      const data = JSON.parse(text);
-      
-      if (!data.boards || !data.columns || !data.tasks) {
-        notifications.error('Invalid file format', 'The file must contain boards, columns, and tasks arrays.');
-        return;
-      }
-
+      const data = await handleFileImport(file);
       // Store the data to be imported and show confirmation dialog
       setImportData(data);
       setIsImportDialogOpen(true);
     } catch (error) {
-      console.error('Error importing database:', error);
-      notifications.error('Failed to import database', 'Please check the file format and try again.');
+      notifications.error('Failed to import file', error instanceof Error ? error.message : 'Unknown error');
     } finally {
-      setIsImporting(false);
       // Reset the file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -134,23 +104,12 @@ export default function BoardList() {
     }
   };
 
-  const handleConfirmImport = async () => {
+  const handleConfirmImport = () => {
     if (!importData) return;
     
-    setIsImporting(true);
-    try {
-      await importDatabase(importData);
-      // Refresh the boards list
-      queryClient.invalidateQueries({ queryKey: ['boards'] });
-      notifications.success('Database imported successfully!');
-      setIsImportDialogOpen(false);
-      setImportData(null);
-    } catch (error) {
-      console.error('Error importing database:', error);
-      notifications.error('Failed to import database', 'An error occurred while importing. Please try again.');
-    } finally {
-      setIsImporting(false);
-    }
+    handleImport(importData);
+    setIsImportDialogOpen(false);
+    setImportData(null);
   };
 
   // Board management functionality
@@ -325,7 +284,7 @@ export default function BoardList() {
           <div className="flex space-x-3">
             <button
               type="button"
-              onClick={handleExport}
+              onClick={handleExportClick}
               disabled={isExporting}
               className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
             >
@@ -390,7 +349,7 @@ export default function BoardList() {
               <div className="flex space-x-3">
                 <button
                   type="button"
-                  onClick={handleExport}
+                  onClick={handleExportClick}
                   disabled={isExporting}
                   className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
                 >

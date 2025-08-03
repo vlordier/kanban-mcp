@@ -40,7 +40,7 @@ describe("Import/Export API Endpoints", () => {
     it("should export empty database", async () => {
       const response = await serverInstance.inject({
         method: "GET",
-        url: "/api/export",
+        url: "/api/v1/export",
       });
 
       expect(response.statusCode).toBe(200);
@@ -65,7 +65,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "GET",
-        url: "/api/export",
+        url: "/api/v1/export",
       });
 
       expect(response.statusCode).toBe(200);
@@ -85,7 +85,7 @@ describe("Import/Export API Endpoints", () => {
     it("should include correct headers for file download", async () => {
       const response = await serverInstance.inject({
         method: "GET",
-        url: "/api/export",
+        url: "/api/v1/export",
       });
 
       expect(response.statusCode).toBe(200);
@@ -101,7 +101,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "GET",
-        url: "/api/export",
+        url: "/api/v1/export",
       });
 
       expect(response.statusCode).toBe(500);
@@ -126,7 +126,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: importData,
         headers: {
           "content-type": "application/json",
@@ -146,24 +146,24 @@ describe("Import/Export API Endpoints", () => {
     it("should import database with data", async () => {
       const importData = {
         boards: [{
-          id: "import-board-id",
+          id: "550e8400-e29b-41d4-a716-446655440001",
           name: "Imported Board",
           goal: "Imported Goal",
-          landing_column_id: "import-column-id",
+          landing_column_id: "550e8400-e29b-41d4-a716-446655440002",
           created_at: "2025-01-01T00:00:00.000Z",
           updated_at: "2025-01-01T00:00:00.000Z"
         }],
         columns: [{
-          id: "import-column-id",
-          board_id: "import-board-id",
+          id: "550e8400-e29b-41d4-a716-446655440002",
+          board_id: "550e8400-e29b-41d4-a716-446655440001",
           name: "Imported Column",
           position: 0,
           wip_limit: 5,
           is_done_column: 0
         }],
         tasks: [{
-          id: "import-task-id",
-          column_id: "import-column-id",
+          id: "550e8400-e29b-41d4-a716-446655440003",
+          column_id: "550e8400-e29b-41d4-a716-446655440002",
           title: "Imported Task",
           content: "Imported Content",
           position: 0,
@@ -175,7 +175,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: importData,
         headers: {
           "content-type": "application/json",
@@ -188,12 +188,12 @@ describe("Import/Export API Endpoints", () => {
       expect(result.message).toBe("Database imported successfully. Imported 1 boards, 1 columns, and 1 tasks.");
 
       // Verify imported data
-      const board = kanbanDb.getBoardById("import-board-id");
+      const board = kanbanDb.getBoardById("550e8400-e29b-41d4-a716-446655440001");
       expect(board).toBeDefined();
       expect(board?.name).toBe("Imported Board");
       expect(board?.goal).toBe("Imported Goal");
 
-      const task = kanbanDb.getTaskById("import-task-id");
+      const task = kanbanDb.getTaskById("550e8400-e29b-41d4-a716-446655440003");
       expect(task).toBeDefined();
       expect(task?.title).toBe("Imported Task");
       expect(task?.content).toBe("Imported Content");
@@ -223,7 +223,7 @@ describe("Import/Export API Endpoints", () => {
       for (const testCase of validTestCases) {
         const response = await serverInstance.inject({
           method: "POST",
-          url: "/api/import",
+          url: "/api/v1/import",
           payload: testCase.data,
           headers: {
             "content-type": "application/json",
@@ -232,13 +232,13 @@ describe("Import/Export API Endpoints", () => {
 
         expect(response.statusCode).toBe(400);
         const result = JSON.parse(response.payload);
-        expect(result.error).toBe("Invalid data format. Must contain boards, columns, and tasks arrays.");
+        expect(result.error).toBe("Validation failed");
       }
 
       // Test null data separately as it causes a different error
       const nullResponse = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: null,
         headers: {
           "content-type": "application/json",
@@ -246,14 +246,14 @@ describe("Import/Export API Endpoints", () => {
       });
 
       expect(nullResponse.statusCode).toBe(400);
-      // Fastify returns a generic error for null payload
-      expect(nullResponse.payload).toContain("Bad Request");
+      // Fastify returns a descriptive error for empty JSON body
+      expect(nullResponse.payload).toContain("Body cannot be empty");
     });
 
     it("should handle invalid JSON", async () => {
       const response = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: "invalid json",
         headers: {
           "content-type": "application/json",
@@ -275,7 +275,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: importData,
         headers: {
           "content-type": "application/json",
@@ -303,16 +303,16 @@ describe("Import/Export API Endpoints", () => {
       // Import new data
       const importData = {
         boards: [{
-          id: "new-board-id",
+          id: "550e8400-e29b-41d4-a716-446655440010",
           name: "New Board",
           goal: "New Goal",
-          landing_column_id: "new-column-id",
+          landing_column_id: "550e8400-e29b-41d4-a716-446655440011",
           created_at: "2025-01-01T00:00:00.000Z",
           updated_at: "2025-01-01T00:00:00.000Z"
         }],
         columns: [{
-          id: "new-column-id",
-          board_id: "new-board-id",
+          id: "550e8400-e29b-41d4-a716-446655440011",
+          board_id: "550e8400-e29b-41d4-a716-446655440010",
           name: "New Column",
           position: 0,
           wip_limit: 2,
@@ -323,7 +323,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: importData,
         headers: {
           "content-type": "application/json",
@@ -335,7 +335,7 @@ describe("Import/Export API Endpoints", () => {
       // Verify old data is replaced
       const allBoards = kanbanDb.getAllBoards();
       expect(allBoards.length).toBe(1);
-      expect(allBoards[0].id).toBe("new-board-id");
+      expect(allBoards[0].id).toBe("550e8400-e29b-41d4-a716-446655440010");
       expect(allBoards[0].name).toBe("New Board");
 
       // Verify original board no longer exists
@@ -347,42 +347,42 @@ describe("Import/Export API Endpoints", () => {
       const importData = {
         boards: [
           {
-            id: "board-1",
+            id: "550e8400-e29b-41d4-a716-446655440020",
             name: "Board 1",
             goal: "Goal 1",
-            landing_column_id: "col-1-1",
+            landing_column_id: "550e8400-e29b-41d4-a716-446655440030",
             created_at: "2025-01-01T00:00:00.000Z",
             updated_at: "2025-01-01T00:00:00.000Z"
           },
           {
-            id: "board-2",
+            id: "550e8400-e29b-41d4-a716-446655440021",
             name: "Board 2",
             goal: "Goal 2",
-            landing_column_id: "col-2-1",
+            landing_column_id: "550e8400-e29b-41d4-a716-446655440032",
             created_at: "2025-01-01T00:00:00.000Z",
             updated_at: "2025-01-01T00:00:00.000Z"
           }
         ],
         columns: [
           {
-            id: "col-1-1",
-            board_id: "board-1",
+            id: "550e8400-e29b-41d4-a716-446655440030",
+            board_id: "550e8400-e29b-41d4-a716-446655440020",
             name: "Board 1 Col 1",
             position: 0,
             wip_limit: 3,
             is_done_column: 0
           },
           {
-            id: "col-1-2",
-            board_id: "board-1",
+            id: "550e8400-e29b-41d4-a716-446655440031",
+            board_id: "550e8400-e29b-41d4-a716-446655440020",
             name: "Board 1 Col 2",
             position: 1,
             wip_limit: 0,
             is_done_column: 1
           },
           {
-            id: "col-2-1",
-            board_id: "board-2",
+            id: "550e8400-e29b-41d4-a716-446655440032",
+            board_id: "550e8400-e29b-41d4-a716-446655440021",
             name: "Board 2 Col 1",
             position: 0,
             wip_limit: 5,
@@ -391,8 +391,8 @@ describe("Import/Export API Endpoints", () => {
         ],
         tasks: [
           {
-            id: "task-1-1",
-            column_id: "col-1-1",
+            id: "550e8400-e29b-41d4-a716-446655440040",
+            column_id: "550e8400-e29b-41d4-a716-446655440030",
             title: "Task 1",
             content: "Content 1",
             position: 0,
@@ -401,8 +401,8 @@ describe("Import/Export API Endpoints", () => {
             update_reason: undefined
           },
           {
-            id: "task-1-2",
-            column_id: "col-1-2",
+            id: "550e8400-e29b-41d4-a716-446655440041",
+            column_id: "550e8400-e29b-41d4-a716-446655440031",
             title: "Task 2",
             content: "Content 2",
             position: 0,
@@ -411,8 +411,8 @@ describe("Import/Export API Endpoints", () => {
             update_reason: "Moved to done"
           },
           {
-            id: "task-2-1",
-            column_id: "col-2-1",
+            id: "550e8400-e29b-41d4-a716-446655440042",
+            column_id: "550e8400-e29b-41d4-a716-446655440032",
             title: "Task 3",
             content: "Content 3",
             position: 0,
@@ -425,7 +425,7 @@ describe("Import/Export API Endpoints", () => {
 
       const response = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: importData,
         headers: {
           "content-type": "application/json",
@@ -438,8 +438,8 @@ describe("Import/Export API Endpoints", () => {
       expect(result.message).toBe("Database imported successfully. Imported 2 boards, 3 columns, and 3 tasks.");
 
       // Verify relationships are maintained
-      const board1Data = kanbanDb.getBoardWithColumnsAndTasks("board-1");
-      const board2Data = kanbanDb.getBoardWithColumnsAndTasks("board-2");
+      const board1Data = kanbanDb.getBoardWithColumnsAndTasks("550e8400-e29b-41d4-a716-446655440020");
+      const board2Data = kanbanDb.getBoardWithColumnsAndTasks("550e8400-e29b-41d4-a716-446655440021");
 
       expect(board1Data).toBeDefined();
       expect(board2Data).toBeDefined();
@@ -448,9 +448,9 @@ describe("Import/Export API Endpoints", () => {
       expect(board2Data?.columns.length).toBe(1);
 
       // Check tasks are in correct columns
-      const board1Col1Tasks = board1Data?.columns.find(col => col.id === "col-1-1")?.tasks;
-      const board1Col2Tasks = board1Data?.columns.find(col => col.id === "col-1-2")?.tasks;
-      const board2Col1Tasks = board2Data?.columns.find(col => col.id === "col-2-1")?.tasks;
+      const board1Col1Tasks = board1Data?.columns.find(col => col.id === "550e8400-e29b-41d4-a716-446655440030")?.tasks;
+      const board1Col2Tasks = board1Data?.columns.find(col => col.id === "550e8400-e29b-41d4-a716-446655440031")?.tasks;
+      const board2Col1Tasks = board2Data?.columns.find(col => col.id === "550e8400-e29b-41d4-a716-446655440032")?.tasks;
 
       expect(board1Col1Tasks?.length).toBe(1);
       expect(board1Col2Tasks?.length).toBe(1);
@@ -481,7 +481,7 @@ describe("Import/Export API Endpoints", () => {
       // Export data
       const exportResponse = await serverInstance.inject({
         method: "GET",
-        url: "/api/export",
+        url: "/api/v1/export",
       });
 
       expect(exportResponse.statusCode).toBe(200);
@@ -490,7 +490,7 @@ describe("Import/Export API Endpoints", () => {
       // Import the exported data
       const importResponse = await serverInstance.inject({
         method: "POST",
-        url: "/api/import",
+        url: "/api/v1/import",
         payload: exportedData,
         headers: {
           "content-type": "application/json",

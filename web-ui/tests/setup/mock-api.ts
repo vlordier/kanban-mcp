@@ -83,8 +83,8 @@ export class MockApiServer {
   }
 
   async setupRoutes(page: Page) {
-    // Mock GET /api/boards
-    await page.route('/api/boards', async (route) => {
+    // Mock GET /api/v1/boards
+    await page.route('/api/v1/boards', async (route) => {
       if (route.request().method() === 'GET') {
         const boards = Array.from(this.boards.values());
         await route.fulfill({
@@ -140,8 +140,8 @@ export class MockApiServer {
       }
     });
 
-    // Mock GET /api/boards/:id
-    await page.route('/api/boards/*', async (route) => {
+    // Mock GET /api/v1/boards/:id
+    await page.route('/api/v1/boards/*', async (route) => {
       if (route.request().method() === 'GET') {
         const url = route.request().url();
         const boardId = url.split('/').pop();
@@ -213,7 +213,7 @@ export class MockApiServer {
     });
 
     // Mock task operations
-    await page.route('/api/tasks/*', async (route) => {
+    await page.route('/api/v1/tasks/*', async (route) => {
       if (route.request().method() === 'GET') {
         const url = route.request().url();
         const taskId = url.split('/').pop();
@@ -236,7 +236,7 @@ export class MockApiServer {
     });
 
     // Mock task creation and movement
-    await page.route('/api/columns/*/tasks', async (route) => {
+    await page.route('/api/v1/columns/*/tasks', async (route) => {
       if (route.request().method() === 'POST') {
         const url = route.request().url();
         const columnId = url.split('/')[4]; // Extract column ID from URL
@@ -271,7 +271,7 @@ export class MockApiServer {
     });
 
     // Mock task movement
-    await page.route('/api/tasks/*/move', async (route) => {
+    await page.route('/api/v1/tasks/*/move', async (route) => {
       if (route.request().method() === 'PUT') {
         const url = route.request().url();
         const taskId = url.split('/')[4];

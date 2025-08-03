@@ -63,6 +63,9 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 120 * 1000, // Back to reasonable timeout since we fixed the proxy issue
+    env: {
+      PLAYWRIGHT_TEST: '1', // Disable API proxy during tests
+    },
   },
 });

@@ -49,13 +49,10 @@ export function useBoards() {
 }
 
 export function useBoard(boardId: string) {
-  const { handleApiError } = useApiError();
-
   return useQuery({
     queryKey: ['board', boardId],
     queryFn: () => getBoardWithColumnsAndTasks(boardId),
     enabled: !!boardId,
     staleTime: 15000, // Board data changes more frequently
-    onError: (error) => handleApiError(error, 'Failed to load board'),
   });
 }
