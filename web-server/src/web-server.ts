@@ -6,7 +6,64 @@ import Fastify, {
 import fastifyStatic from "@fastify/static";
 import fastifyCors from "@fastify/cors";
 import path from "path";
-import { KanbanDB, ColumnCapacityFullError } from "@kanban-mcp/db";
+import { z } from "zod";
+import { KanbanDB, ColumnCapacityFullError, Board, Column, Task } from "@kanban-mcp/db";
+
+// Validation schemas
+const BoardSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  goal: z.string().min(1).max(1000),
+  landing_column_id: z.string().uuid().nullable(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime()
+});
+
+const ColumnSchema = z.object({
+  id: z.string().uuid(),
+  board_id: z.string().uuid(),
+  name: z.string().min(1).max(255),
+  position: z.number().int().min(0),
+  wip_limit: z.number().int().min(0),
+  is_done_column: z.number().int().min(0).max(1)
+});
+
+const TaskSchema = z.object({
+  id: z.string().uuid(),
+  column_id: z.string().uuid(),
+  title: z.string().min(1).max(255),
+  content: z.string().min(1),
+  position: z.number().int().min(0),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+  update_reason: z.string().nullable().optional()
+});
+
+const ImportDataSchema = z.object({
+  boards: z.array(BoardSchema),
+  columns: z.array(ColumnSchema),
+  tasks: z.array(TaskSchema)
+});
+
+const CreateBoardSchema = z.object({
+  name: z.string().min(1).max(255).trim(),
+  goal: z.string().min(1).max(1000).trim()
+});
+
+const UpdateTaskSchema = z.object({
+  content: z.string().min(1)
+});
+
+const CreateTaskSchema = z.object({
+  columnId: z.string().uuid(),
+  title: z.string().min(1).max(255).trim(),
+  content: z.string().min(1)
+});
+
+const MoveTaskSchema = z.object({
+  targetColumnId: z.string().uuid(),
+  reason: z.string().optional()
+});
 
 /**
  * WebServer class that handles the web server functionality
@@ -14,6 +71,46 @@ import { KanbanDB, ColumnCapacityFullError } from "@kanban-mcp/db";
 class WebServer {
   private server: FastifyInstance;
   private kanbanDB: KanbanDB;
+  private rateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
+
+  /**
+   * Check rate limit for a client IP
+   * @param ip Client IP address
+   * @param endpoint Endpoint name for rate limiting
+   * @param limit Maximum requests per window
+   * @param windowMs Window duration in milliseconds
+   * @returns true if request should be allowed, false if rate limited
+   */
+  private checkRateLimit(ip: string, endpoint: string, limit: number = 10, windowMs: number = 60000): boolean {
+    const key = `${ip}-${endpoint}`;
+    const now = Date.now();
+    const rateLimit = this.rateLimitMap.get(key);
+
+    if (!rateLimit || now > rateLimit.resetTime) {
+      // Reset window
+      this.rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+      return true;
+    }
+
+    if (rateLimit.count >= limit) {
+      return false;
+    }
+
+    rateLimit.count++;
+    return true;
+  }
+
+  /**
+   * Clean up expired rate limit entries
+   */
+  private cleanupRateLimits(): void {
+    const now = Date.now();
+    for (const [key, rateLimit] of this.rateLimitMap.entries()) {
+      if (now > rateLimit.resetTime) {
+        this.rateLimitMap.delete(key);
+      }
+    }
+  }
 
   /**
    * Creates a new WebServer instance
@@ -22,9 +119,19 @@ class WebServer {
   constructor(kanbanDB: KanbanDB) {
     this.kanbanDB = kanbanDB;
 
-    // Create Fastify instance
+    // Create Fastify instance with structured logging
     this.server = Fastify({
-      logger: true
+      logger: {
+        level: process.env.LOG_LEVEL || 'info',
+        transport: process.env.NODE_ENV === 'development' ? {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname'
+          }
+        } : undefined
+      }
     });
 
     // Register CORS plugin with localhost-only configuration
@@ -34,18 +141,121 @@ class WebServer {
       credentials: true,
     });
 
+    this.setupErrorHandlers();
     this.setupRoutes();
     this.setupStaticFiles();
+
+    // Clean up rate limit entries every 5 minutes
+    setInterval(() => this.cleanupRateLimits(), 5 * 60 * 1000);
+  }
+
+  /**
+   * Sets up error handlers
+   */
+  private setupErrorHandlers(): void {
+    // Global error handler
+    this.server.setErrorHandler((error, request, reply) => {
+      const errorId = crypto.randomUUID();
+      
+      // Log error with context
+      request.log.error({
+        error: {
+          message: error.message,
+          stack: error.stack,
+          code: error.code,
+          statusCode: error.statusCode
+        },
+        errorId,
+        method: request.method,
+        url: request.url,
+        ip: request.ip,
+        userAgent: request.headers['user-agent']
+      }, 'Request error occurred');
+
+      // Send structured error response
+      const statusCode = error.statusCode || 500;
+      
+      if (statusCode >= 500) {
+        // Don't expose internal errors to client
+        reply.code(500).send({
+          error: 'Internal Server Error',
+          errorId,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        // Client errors can be exposed
+        reply.code(statusCode).send({
+          error: error.message || 'Bad Request',
+          errorId,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+
+    // Request validation error handler
+    this.server.setSchemaErrorFormatter((errors, dataVar) => {
+      return new Error(`Validation error in ${dataVar}: ${errors.map(e => e.message).join(', ')}`);
+    });
   }
 
   /**
    * Sets up the API routes
    */
   private setupRoutes(): void {
+    // Health check endpoint
+    this.server.get("/health", async (request: FastifyRequest, reply: FastifyReply) => {
+      const startTime = Date.now();
+      const health = {
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        version: process.env.npm_package_version || "unknown",
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || "development",
+        checks: {
+          database: { status: "unknown", responseTime: 0 },
+          memory: { status: "healthy", usage: process.memoryUsage() },
+          rateLimiter: { status: "healthy", activeEntries: this.rateLimitMap.size }
+        }
+      };
+
+      // Check database health
+      try {
+        const dbStartTime = Date.now();
+        this.kanbanDB.getAllBoards(); // Simple query to test connection
+        health.checks.database = {
+          status: "healthy",
+          responseTime: Date.now() - dbStartTime
+        };
+      } catch (error) {
+        health.status = "unhealthy";
+        health.checks.database = {
+          status: "unhealthy",
+          responseTime: Date.now() - startTime,
+          error: error instanceof Error ? error.message : "Unknown error"
+        };
+        return reply.code(503).send(health);
+      }
+
+      // Check memory usage
+      const memUsage = process.memoryUsage();
+      const memThreshold = 1024 * 1024 * 1024; // 1GB
+      if (memUsage.heapUsed > memThreshold) {
+        health.checks.memory.status = "warning";
+        if (memUsage.heapUsed > memThreshold * 1.5) {
+          health.status = "degraded";
+        }
+      }
+
+      const responseTime = Date.now() - startTime;
+      reply.header('X-Response-Time', `${responseTime}ms`);
+      
+      return reply.code(health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503).send(health);
+    });
+
     // API Routes
     // Get all boards
     this.server.get(
-      "/api/boards",
+      "/api/v1/boards",
       async (request: FastifyRequest, reply: FastifyReply) => {
         try {
           const boards = this.kanbanDB.getAllBoards();
@@ -59,7 +269,7 @@ class WebServer {
 
     // Create a new board
     this.server.post(
-      "/api/boards",
+      "/api/v1/boards",
       async (
         request: FastifyRequest<{
           Body: { name: string; goal: string };
@@ -67,11 +277,18 @@ class WebServer {
         reply: FastifyReply
       ) => {
         try {
-          const { name, goal } = request.body as { name: string; goal: string };
-          
-          if (!name || !goal) {
-            return reply.code(400).send({ error: "Name and goal are required" });
+          const validation = CreateBoardSchema.safeParse(request.body);
+          if (!validation.success) {
+            return reply.code(400).send({
+              error: "Validation failed",
+              details: validation.error.issues.map(issue => ({
+                path: issue.path.join('.'),
+                message: issue.message
+              }))
+            });
           }
+          
+          const { name, goal } = validation.data;
           
           // Create default columns
           const columns = [
@@ -98,7 +315,7 @@ class WebServer {
 
     // Get a specific board with its columns and tasks
     this.server.get(
-      "/api/boards/:boardId",
+      "/api/v1/boards/:boardId",
       async (
         request: FastifyRequest<{ Params: { boardId: string } }>,
         reply: FastifyReply
@@ -121,7 +338,7 @@ class WebServer {
 
     // Delete a board and all its related data
     this.server.delete(
-      "/api/boards/:boardId",
+      "/api/v1/boards/:boardId",
       async (
         request: FastifyRequest<{ Params: { boardId: string } }>,
         reply: FastifyReply
@@ -153,7 +370,7 @@ class WebServer {
 
     // Get the task full info and content
     this.server.get(
-      "/api/tasks/:taskId",
+      "/api/v1/tasks/:taskId",
       async (
         request: FastifyRequest<{ Params: { taskId: string } }>,
         reply: FastifyReply
@@ -176,7 +393,7 @@ class WebServer {
 
     // Update a task's content
     this.server.put(
-      "/api/tasks/:taskId",
+      "/api/v1/tasks/:taskId",
       async (
         request: FastifyRequest<{
           Params: { taskId: string };
@@ -212,7 +429,7 @@ class WebServer {
 
     // Create a new task
     this.server.post(
-      "/api/tasks",
+      "/api/v1/tasks",
       async (
         request: FastifyRequest<{
           Body: { columnId: string; title: string; content: string };
@@ -264,7 +481,7 @@ class WebServer {
 
     // Delete a task
     this.server.delete(
-      "/api/tasks/:taskId",
+      "/api/v1/tasks/:taskId",
       async (
         request: FastifyRequest<{ Params: { taskId: string } }>,
         reply: FastifyReply
@@ -296,7 +513,7 @@ class WebServer {
 
     // Move a task to a different column
     this.server.post(
-      "/api/tasks/:taskId/move",
+      "/api/v1/tasks/:taskId/move",
       async (
         request: FastifyRequest<{
           Params: { taskId: string };
@@ -351,8 +568,17 @@ class WebServer {
 
     // Export database
     this.server.get(
-      "/api/export",
+      "/api/v1/export",
       async (request: FastifyRequest, reply: FastifyReply) => {
+        // Apply rate limiting - 5 exports per minute
+        const clientIp = request.ip;
+        if (!this.checkRateLimit(clientIp, 'export', 5, 60000)) {
+          return reply.code(429).send({
+            error: "Too Many Requests",
+            message: "Export rate limit exceeded. Please wait before trying again."
+          });
+        }
+
         try {
           const data = this.kanbanDB.exportDatabase();
           
@@ -370,20 +596,46 @@ class WebServer {
 
     // Import database
     this.server.post(
-      "/api/import",
+      "/api/v1/import",
       async (
         request: FastifyRequest<{
-          Body: { boards: any[]; columns: any[]; tasks: any[] };
+          Body: { boards: Board[]; columns: Column[]; tasks: Task[] };
         }>,
         reply: FastifyReply
       ) => {
+        // Apply rate limiting - 3 imports per minute (stricter than export)
+        const clientIp = request.ip;
+        if (!this.checkRateLimit(clientIp, 'import', 3, 60000)) {
+          return reply.code(429).send({
+            error: "Too Many Requests",
+            message: "Import rate limit exceeded. Please wait before trying again."
+          });
+        }
+
         try {
-          const data = request.body;
+          // Strict validation with Zod
+          const validation = ImportDataSchema.safeParse(request.body);
+          if (!validation.success) {
+            return reply.code(400).send({
+              error: "Validation failed",
+              details: validation.error.issues.map(issue => ({
+                path: issue.path.join('.'),
+                message: issue.message,
+                code: issue.code
+              }))
+            });
+          }
           
-          // Validate the data structure
-          if (!data || !data.boards || !data.columns || !data.tasks) {
-            return reply.code(400).send({ 
-              error: "Invalid data format. Must contain boards, columns, and tasks arrays." 
+          const data = validation.data;
+          
+          // Validate file size (check JSON string size)
+          const dataSize = JSON.stringify(data).length;
+          const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit
+          
+          if (dataSize > maxSizeBytes) {
+            return reply.code(413).send({
+              error: "Import file too large",
+              message: `File size (${Math.round(dataSize / 1024 / 1024 * 100) / 100}MB) exceeds maximum allowed size of ${maxSizeBytes / 1024 / 1024}MB`
             });
           }
           
