@@ -60,16 +60,79 @@ export function useImportExport() {
       const reader = new FileReader();
       reader.onload = e => {
         try {
-          const data = JSON.parse(e.target?.result as string);
+          const rawData = e.target?.result as string;
+          
+          // Check for empty or invalid content
+          if (!rawData || rawData.trim().length === 0) {
+            throw new Error('File is empty or contains no data');
+          }
 
-          // Basic validation
-          if (!data.boards || !data.columns || !data.tasks) {
-            throw new Error('Invalid file format. Must contain boards, columns, and tasks arrays.');
+          // Check for extremely large files (prevent memory issues)
+          if (rawData.length > 50 * 1024 * 1024) { // 50MB limit
+            throw new Error('File is too large (maximum 50MB allowed)');
+          }
+
+          const data = JSON.parse(rawData);
+
+          // Enhanced validation - check that data is an object first
+          if (typeof data !== 'object' || data === null) {
+            throw new Error('Invalid file format: Expected JSON object');
+          }
+
+          // Validate required properties are arrays
+          if (!Array.isArray(data.boards) || !Array.isArray(data.columns) || !Array.isArray(data.tasks)) {
+            throw new Error('Invalid data format: boards, columns, and tasks must be arrays');
+          }
+
+          // Additional validation for data integrity
+          if (data.boards.length > 0) {
+            // Check that boards have required properties
+            const invalidBoard = data.boards.find((board: any) => 
+              typeof board !== 'object' || 
+              typeof board.id !== 'string' || 
+              typeof board.name !== 'string'
+            );
+            if (invalidBoard) {
+              throw new Error('Invalid board data: Each board must have id and name properties');
+            }
+          }
+
+          if (data.columns.length > 0) {
+            // Check that columns have required properties
+            const invalidColumn = data.columns.find((column: any) => 
+              typeof column !== 'object' || 
+              typeof column.id !== 'string' || 
+              typeof column.board_id !== 'string' ||
+              typeof column.name !== 'string'
+            );
+            if (invalidColumn) {
+              throw new Error('Invalid column data: Each column must have id, board_id, and name properties');
+            }
+          }
+
+          if (data.tasks.length > 0) {
+            // Check that tasks have required properties
+            const invalidTask = data.tasks.find((task: any) => 
+              typeof task !== 'object' || 
+              typeof task.id !== 'string' || 
+              typeof task.column_id !== 'string' ||
+              typeof task.title !== 'string'
+            );
+            if (invalidTask) {
+              throw new Error('Invalid task data: Each task must have id, column_id, and title properties');
+            }
           }
 
           resolve(data);
         } catch (error) {
-          reject(error);
+          // Provide more specific error messages
+          if (error instanceof SyntaxError) {
+            reject(new Error('Invalid JSON format: File contains malformed JSON data'));
+          } else if (error instanceof Error) {
+            reject(error);
+          } else {
+            reject(new Error('Unknown error occurred while processing file'));
+          }
         }
       };
       reader.onerror = () => reject(new Error('Failed to read file'));
