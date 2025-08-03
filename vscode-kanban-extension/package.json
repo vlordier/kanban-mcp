@@ -1,0 +1,123 @@
+{
+  "name": "kanban-mcp",
+  "displayName": "Kanban MCP",
+  "description": "VSCode extension for Kanban board management using MCP",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:kanban-mcp.showKanbanBoard"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "kanban-mcp.showKanbanBoard",
+        "title": "Show Kanban Board",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.createBoard",
+        "title": "Create New Board",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.refreshBoards",
+        "title": "Refresh Boards",
+        "category": "Kanban MCP"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kanban-explorer",
+          "title": "Kanban",
+          "icon": "$(kanban)"
+        }
+      ]
+    },
+    "views": {
+      "kanban-explorer": [
+        {
+          "id": "kanban-boards",
+          "name": "Boards",
+          "when": "true"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "kanban-mcp.refreshBoards",
+          "when": "view == kanban-boards",
+          "group": "navigation"
+        },
+        {
+          "command": "kanban-mcp.createBoard",
+          "when": "view == kanban-boards",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kanban-mcp.openBoard",
+          "when": "view == kanban-boards && viewItem == board",
+          "group": "inline"
+        },
+        {
+          "command": "kanban-mcp.deleteBoard",
+          "when": "view == kanban-boards && viewItem == board",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Kanban MCP",
+      "properties": {
+        "kanban-mcp.mcpServerUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "URL of the MCP Kanban server"
+        },
+        "kanban-mcp.webServerUrl": {
+          "type": "string", 
+          "default": "http://localhost:3000",
+          "description": "URL of the Kanban web server"
+        },
+        "kanban-mcp.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh boards"
+        },
+        "kanban-mcp.refreshInterval": {
+          "type": "number",
+          "default": 30000,
+          "description": "Auto refresh interval in milliseconds"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
