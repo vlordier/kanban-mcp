@@ -226,6 +226,61 @@ class WebServer {
       }
     );
 
+    // Export database
+    this.server.get(
+      "/api/export",
+      async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+          const data = this.kanbanDB.exportDatabase();
+          
+          // Set headers for file download
+          reply.header('Content-Type', 'application/json');
+          reply.header('Content-Disposition', `attachment; filename="kanban-export-${new Date().toISOString().split('T')[0]}.json"`);
+          
+          return reply.code(200).send(data);
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Failed to export database" });
+        }
+      }
+    );
+
+    // Import database
+    this.server.post(
+      "/api/import",
+      async (
+        request: FastifyRequest<{
+          Body: { boards: any[]; columns: any[]; tasks: any[] };
+        }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const data = request.body;
+          
+          // Validate the data structure
+          if (!data || !data.boards || !data.columns || !data.tasks) {
+            return reply.code(400).send({ 
+              error: "Invalid data format. Must contain boards, columns, and tasks arrays." 
+            });
+          }
+          
+          // Import the data
+          this.kanbanDB.importDatabase(data);
+          
+          return reply.code(200).send({ 
+            success: true,
+            message: `Database imported successfully. Imported ${data.boards.length} boards, ${data.columns.length} columns, and ${data.tasks.length} tasks.`
+          });
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ 
+            error: "Failed to import database",
+            details: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
+    );
+
     // handle 404 by redirecting to /
     this.server.setNotFoundHandler((request: FastifyRequest, reply: FastifyReply) => {
       reply.redirect("/");

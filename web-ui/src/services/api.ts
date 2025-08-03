@@ -90,3 +90,33 @@ export async function deleteBoard(boardId: string): Promise<{
 
   return response.json();
 }
+
+export async function exportDatabase(): Promise<Blob> {
+  const response = await fetch(`${API_BASE_URL}/export`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to export database');
+  }
+
+  return response.blob();
+}
+
+export async function importDatabase(data: { boards: any[]; columns: any[]; tasks: any[] }): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const response = await fetch(`${API_BASE_URL}/import`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to import database');
+  }
+
+  return response.json();
+}

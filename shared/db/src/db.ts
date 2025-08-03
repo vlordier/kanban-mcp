@@ -410,6 +410,90 @@ export class KanbanDB {
     return result.changes;
   }
 
+  public exportDatabase(): { boards: Board[]; columns: Column[]; tasks: Task[] } {
+    const boards = this.getAllBoards();
+    
+    const columnsStmt = this.db.prepare<[], Column>(`
+      SELECT id, board_id, name, position, wip_limit, is_done_column
+      FROM columns
+      ORDER BY board_id, position
+    `);
+    const columns = columnsStmt.all();
+    
+    const tasksStmt = this.db.prepare<[], Task>(`
+      SELECT id, column_id, title, content, position, created_at, updated_at, update_reason
+      FROM tasks
+      ORDER BY column_id, position
+    `);
+    const tasks = tasksStmt.all();
+    
+    return { boards, columns, tasks };
+  }
+
+  public importDatabase(data: { boards: Board[]; columns: Column[]; tasks: Task[] }): void {
+    const transaction = this.db.transaction(() => {
+      // Clear existing data
+      this.db.exec(`DELETE FROM tasks`);
+      this.db.exec(`DELETE FROM columns`);
+      this.db.exec(`DELETE FROM boards`);
+      
+      // Insert boards
+      const insertBoardStmt = this.db.prepare<[string, string, string, string | null, string, string]>(`
+        INSERT INTO boards (id, name, goal, landing_column_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      
+      for (const board of data.boards) {
+        insertBoardStmt.run(
+          board.id,
+          board.name,
+          board.goal,
+          board.landing_column_id,
+          board.created_at,
+          board.updated_at
+        );
+      }
+      
+      // Insert columns
+      const insertColumnStmt = this.db.prepare<[string, string, string, number, number, number]>(`
+        INSERT INTO columns (id, board_id, name, position, wip_limit, is_done_column)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      
+      for (const column of data.columns) {
+        insertColumnStmt.run(
+          column.id,
+          column.board_id,
+          column.name,
+          column.position,
+          column.wip_limit,
+          column.is_done_column
+        );
+      }
+      
+      // Insert tasks
+      const insertTaskStmt = this.db.prepare<[string, string, string, string, number, string, string, string | null]>(`
+        INSERT INTO tasks (id, column_id, title, content, position, created_at, updated_at, update_reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      for (const task of data.tasks) {
+        insertTaskStmt.run(
+          task.id,
+          task.column_id,
+          task.title,
+          task.content,
+          task.position,
+          task.created_at,
+          task.updated_at,
+          task.update_reason || null
+        );
+      }
+    });
+    
+    transaction();
+  }
+
   private generateUUID(): string {
     return crypto.randomUUID();
   }
