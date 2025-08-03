@@ -11,7 +11,7 @@ export function useImportExport() {
 
   const exportMutation = useMutation({
     mutationFn: exportDatabase,
-    onSuccess: blob => {
+    onSuccess: async (blob) => {
       // Create download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -21,7 +21,22 @@ export function useImportExport() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      notifications.success('Database exported successfully');
+      
+      // Show detailed success message with counts
+      try {
+        const text = await blob.text();
+        const data = JSON.parse(text);
+        const boardCount = data.boards?.length || 0;
+        const columnCount = data.columns?.length || 0;
+        const taskCount = data.tasks?.length || 0;
+        
+        notifications.success(
+          `Database exported successfully! Exported ${boardCount} boards, ${columnCount} columns, and ${taskCount} tasks.`
+        );
+      } catch {
+        // Fallback to generic message if parsing fails
+        notifications.success('Database exported successfully');
+      }
     },
     onError: error => handleApiError(error, 'Failed to export database'),
   });
@@ -29,10 +44,11 @@ export function useImportExport() {
   const importMutation = useMutation({
     mutationFn: (data: { boards: Board[]; columns: Column[]; tasks: Task[] }) =>
       importDatabase(data),
-    onSuccess: () => {
+    onSuccess: (response) => {
       // Refresh all data after successful import
       queryClient.invalidateQueries({ queryKey: ['boards'] });
-      notifications.success('Database imported successfully!');
+      // Use the detailed message from the API response
+      notifications.success(response.message || 'Database imported successfully!');
     },
     onError: error => handleApiError(error, 'Failed to import database'),
   });
