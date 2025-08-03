@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Board {
+  id                String    @id @default(cuid())
+  name              String
+  goal              String
+  landingColumnId   String?   @map("landing_column_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  columns           Column[]
+  landingColumn     Column?   @relation("LandingColumn", fields: [landingColumnId], references: [id])
+  
+  @@map("boards")
+}
+
+model Column {
+  id            String    @id @default(cuid())
+  boardId       String    @map("board_id")
+  name          String
+  position      Int
+  wipLimit      Int       @map("wip_limit")
+  isDoneColumn  Boolean   @default(false) @map("is_done_column")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  board         Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks         Task[]
+  landingBoard  Board[]   @relation("LandingColumn")
+  
+  @@map("columns")
+  @@index([boardId])
+  @@index([position])
+}
+
+model Task {
+  id            String    @id @default(cuid())
+  columnId      String    @map("column_id")
+  title         String
+  content       String
+  position      Int
+  updateReason  String?   @map("update_reason")
+  metadata      String?   // JSON string for additional task data
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  column        Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  
+  @@map("tasks")
+  @@index([columnId])
+  @@index([position])
+}
+
+// Model for tracking schema migrations and database health
+model DatabaseInfo {
+  id            String    @id @default("singleton")
+  schemaVersion String    @map("schema_version")
+  lastMigration DateTime? @map("last_migration")
+  healthCheck   DateTime  @default(now()) @map("health_check")
+  
+  @@map("database_info")
+}
