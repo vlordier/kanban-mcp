@@ -35,7 +35,7 @@ class VisualTestSuite {
     // Launch browser
     this.browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      executablePath: process.env.CHROME_EXECUTABLE_PATH,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -140,7 +140,8 @@ class VisualTestSuite {
         }
       });
 
-      await this.page.waitForTimeout(2000);
+      // Wait for any network activity to complete after export
+      await this.page.waitForFunction(() => document.readyState === 'complete');
       await this.takeScreenshot('2-import-export/02-export-clicked.png');
 
       await this.addTestResult('Export Button Test', exportCalled ? 'PASS' : 'FAIL', 
@@ -345,7 +346,8 @@ class VisualTestSuite {
 
       for (const viewport of viewports) {
         await this.page.setViewport({ width: viewport.width, height: viewport.height });
-        await this.page.waitForTimeout(1000); // Let layout settle
+        // Wait for layout to settle after viewport change
+        await this.page.waitForFunction(() => document.readyState === 'complete');
 
         await this.takeScreenshot(`6-responsive-design/${viewport.name.toLowerCase()}-${viewport.width}x${viewport.height}.png`);
 

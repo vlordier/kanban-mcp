@@ -22,7 +22,7 @@ class SimpleVisualTests {
     // Launch browser
     this.browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      executablePath: process.env.CHROME_EXECUTABLE_PATH,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -101,7 +101,8 @@ class SimpleVisualTests {
         }
       });
 
-      await this.wait(3000); // Wait for API call
+      // Wait for any network activity to complete
+      await this.page.waitForLoadState('networkidle');
       await this.takeScreenshot('03-export-clicked.png', 'After clicking export button');
 
       // Test 4: Different screen sizes
@@ -115,7 +116,8 @@ class SimpleVisualTests {
 
       for (const viewport of viewports) {
         await this.page.setViewport({ width: viewport.width, height: viewport.height });
-        await this.wait(1000);
+        // Wait for layout to settle after viewport change
+        await this.page.waitForFunction(() => document.readyState === 'complete');
         await this.takeScreenshot(`04-responsive-${viewport.name}-${viewport.width}x${viewport.height}.png`, 
           `Responsive design - ${viewport.name}`);
       }

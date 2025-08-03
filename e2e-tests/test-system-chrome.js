@@ -9,7 +9,7 @@ async function takeScreenshotWithSystemChrome() {
     
     browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      executablePath: process.env.CHROME_EXECUTABLE_PATH, // Use system Chrome if available
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',

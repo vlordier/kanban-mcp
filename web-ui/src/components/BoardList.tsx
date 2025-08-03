@@ -1,12 +1,12 @@
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { getAllBoards, deleteBoard, createBoard, exportDatabase, importDatabase } from '../services/api';
 import { useState, useRef } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { PlusIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { useNotifications } from './NotificationContainer';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
+import { useBoards } from '../hooks/useBoards';
+import { useImportExport } from '../hooks/useImportExport';
 import { NotificationSystem } from './NotificationSystem';
 
 export default function BoardList() {
@@ -16,6 +16,8 @@ export default function BoardList() {
   // Import/Export states
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importData, setImportData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Board management states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -117,12 +119,9 @@ export default function BoardList() {
         return;
       }
 
-      if (window.confirm('This will replace ALL existing data. Are you sure you want to continue?')) {
-        await importDatabase(data);
-        // Refresh the boards list
-        queryClient.invalidateQueries({ queryKey: ['boards'] });
-        notifications.success('Database imported successfully!');
-      }
+      // Store the data to be imported and show confirmation dialog
+      setImportData(data);
+      setIsImportDialogOpen(true);
     } catch (error) {
       console.error('Error importing database:', error);
       notifications.error('Failed to import database', 'Please check the file format and try again.');
@@ -132,6 +131,25 @@ export default function BoardList() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    if (!importData) return;
+    
+    setIsImporting(true);
+    try {
+      await importDatabase(importData);
+      // Refresh the boards list
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+      notifications.success('Database imported successfully!');
+      setIsImportDialogOpen(false);
+      setImportData(null);
+    } catch (error) {
+      console.error('Error importing database:', error);
+      notifications.error('Failed to import database', 'An error occurred while importing. Please try again.');
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -697,6 +715,67 @@ export default function BoardList() {
                   </div>
                 ) : (
                   'Delete'
+                )}
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
+
+      {/* Import Confirmation Dialog */}
+      <Dialog
+        open={isImportDialogOpen}
+        onClose={() => !isImporting && setIsImportDialogOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-md" aria-hidden="true" />
+        
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="mx-auto max-w-sm rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-8 shadow-2xl shadow-orange-500/20 ring-1 ring-white/20 dark:ring-gray-700/50 border border-orange-100/50 dark:border-orange-900/50">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.304 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <DialogTitle className="text-xl font-bold bg-gradient-to-r from-gray-900 to-orange-800 dark:from-white dark:to-orange-400 bg-clip-text text-transparent">
+                Import Database
+              </DialogTitle>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                This will <span className="font-bold text-orange-600 dark:text-orange-400">replace ALL existing data</span> with the imported data.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {importData && (
+                  <>Importing {importData.boards?.length || 0} boards, {importData.columns?.length || 0} columns, and {importData.tasks?.length || 0} tasks.</>
+                )}
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-2xl border-0 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 px-6 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                onClick={() => setIsImportDialogOpen(false)}
+                disabled={isImporting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-2xl border-0 bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-3 text-sm font-bold text-white hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={handleConfirmImport}
+                disabled={isImporting}
+              >
+                {isImporting ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Importing...</span>
+                  </div>
+                ) : (
+                  'Import'
                 )}
               </button>
             </div>

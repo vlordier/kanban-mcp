@@ -505,6 +505,22 @@ mcpServer.tool(
           isError: true,
         };
       }
+      
+      // Validate file size (JSON string size)
+      const dataSize = jsonData.length;
+      const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit
+      
+      if (dataSize > maxSizeBytes) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: Import data too large. Size (${Math.round(dataSize / 1024 / 1024 * 100) / 100}MB) exceeds maximum allowed size of ${maxSizeBytes / 1024 / 1024}MB`,
+            },
+          ],
+          isError: true,
+        };
+      }
 
       kanbanDB.importDatabase(data);
       
@@ -604,7 +620,7 @@ process.stdin.on("close", async () => {
 // Handle graceful shutdown
 process.on("SIGINT", async () => {
   console.error("Shutting down servers...");
-  await closeServer;
+  await closeServer();
   process.exit(0);
 });
 

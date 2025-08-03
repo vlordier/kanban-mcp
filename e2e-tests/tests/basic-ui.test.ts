@@ -130,8 +130,8 @@ describe('Basic UI Tests', () => {
         }
       });
       
-      // Wait for the API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Wait for the API call to complete
+      await page.waitForFunction(() => window.exportApiCalled === true, { timeout: 5000 });
       
       expect(exportApiCalled).toBe(true);
       expect(exportResponse).toBeTruthy();

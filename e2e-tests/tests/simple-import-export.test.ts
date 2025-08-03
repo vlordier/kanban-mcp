@@ -109,8 +109,8 @@ describe('Simple Import/Export E2E Tests', () => {
         }
       });
       
-      // Wait a bit for the request to be made
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait for the export API call to complete
+      await page.waitForFunction(() => window.exportCalled === true, { timeout: 5000 });
       
       expect(exportCalled).toBe(true);
       

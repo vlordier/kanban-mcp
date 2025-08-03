@@ -105,7 +105,9 @@ export class TestServer {
       }
 
       attempts++;
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Exponential backoff for better server readiness detection
+      const backoff = Math.min(1000 * Math.pow(1.5, attempts), 5000);
+      await new Promise(resolve => setTimeout(resolve, backoff));
     }
 
     throw new Error('Server failed to start within timeout');

@@ -160,12 +160,43 @@ describe('API Integration Tests', () => {
   });
 
   it('should have proper CORS headers for API endpoints', async () => {
-    const response = await fetch(`http://localhost:${testPort}/api/export`, {
-      method: 'OPTIONS'
+    // Test CORS preflight for export endpoint
+    const exportOptionsResponse = await fetch(`http://localhost:${testPort}/api/export`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:8221',
+        'Access-Control-Request-Method': 'GET',
+        'Access-Control-Request-Headers': 'Content-Type'
+      }
     });
     
-    // CORS headers might not be present for OPTIONS requests
-    // This is acceptable as we're mainly testing API functionality
+    expect(exportOptionsResponse.status).toBe(204);
+    expect(exportOptionsResponse.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:8221');
+    expect(exportOptionsResponse.headers.get('Access-Control-Allow-Methods')).toContain('GET');
+    
+    // Test actual CORS headers on a real request
+    const exportResponse = await fetch(`http://localhost:${testPort}/api/export`, {
+      method: 'GET',
+      headers: {
+        'Origin': 'http://localhost:8221'
+      }
+    });
+    
+    expect(exportResponse.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:8221');
+    
+    // Test CORS for import endpoint
+    const importOptionsResponse = await fetch(`http://localhost:${testPort}/api/import`, {
+      method: 'OPTIONS',
+      headers: {
+        'Origin': 'http://localhost:8221',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type'
+      }
+    });
+    
+    expect(importOptionsResponse.status).toBe(204);
+    expect(importOptionsResponse.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:8221');
+    expect(importOptionsResponse.headers.get('Access-Control-Allow-Methods')).toContain('POST');
   });
 
   it('should perform complete import-export round trip', async () => {

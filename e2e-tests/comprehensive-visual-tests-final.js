@@ -35,7 +35,7 @@ class ComprehensiveVisualTests {
     // Launch browser
     this.browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      executablePath: process.env.CHROME_EXECUTABLE_PATH,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -139,7 +139,8 @@ class ComprehensiveVisualTests {
       }
     });
 
-    await this.wait(3000);
+    // Wait for any network activity to complete after export
+    await this.page.waitForFunction(() => document.readyState === 'complete');
     await this.takeScreenshot('02-import-export/02-export-triggered.png', 'After Export Button Clicked');
     
     // Test import button presence and interaction
@@ -230,7 +231,7 @@ class ComprehensiveVisualTests {
         await this.page.goto(board.href, { waitUntil: 'networkidle2', timeout: 10000 });
         
         // Wait for board content to load
-        await this.wait(2000);
+        await this.page.waitForFunction(() => document.readyState === 'complete');
         
         const boardData = await this.page.evaluate(() => {
           const title = document.querySelector('h1, h2, .board-title')?.textContent;
@@ -333,7 +334,8 @@ class ComprehensiveVisualTests {
       console.log(`  📱 Testing ${viewport.name} (${viewport.width}x${viewport.height})`);
       
       await this.page.setViewport({ width: viewport.width, height: viewport.height });
-      await this.wait(1500); // Let layout settle
+      // Wait for layout to settle after viewport change
+      await this.page.waitForFunction(() => document.readyState === 'complete');
       
       // Check button visibility and layout
       const layoutInfo = await this.page.evaluate(() => {

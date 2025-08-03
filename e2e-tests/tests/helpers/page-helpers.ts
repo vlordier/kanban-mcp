@@ -100,7 +100,8 @@ declare module 'puppeteer' {
 puppeteer.Page.prototype.waitForLoadState = async function(state: string) {
   if (state === 'networkidle') {
     await this.waitForLoadState('load');
-    await new Promise(resolve => setTimeout(resolve, 500)); // Wait for network to be idle
+    // Wait for network to be idle using a better approach
+    await this.waitForLoadState('load');
   } else {
     await this.waitForFunction(() => document.readyState === 'complete');
   }

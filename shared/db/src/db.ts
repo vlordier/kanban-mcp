@@ -71,7 +71,23 @@ export interface ColumnDefinition {
 
 export class KanbanDB {
   constructor(private db: Database.Database) {
+    // Configure SQLite for better performance and safety
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('synchronous = NORMAL');
+    this.db.pragma('cache_size = 1000');
+    this.db.pragma('foreign_keys = ON');
+    this.db.pragma('temp_store = MEMORY');
+    
     this.createSchemaIfNotExists();
+  }
+
+  /**
+   * Execute a function within a database transaction
+   * Automatically handles rollback on error and commit on success
+   */
+  public withTransaction<T>(fn: () => T): T {
+    const transaction = this.db.transaction(fn);
+    return transaction();
   }
 
   public close(): void {
@@ -431,6 +447,32 @@ export class KanbanDB {
   }
 
   public importDatabase(data: { boards: Board[]; columns: Column[]; tasks: Task[] }): void {
+    // Data is already validated at the API layer with Zod schemas
+    // Only validate referential integrity here
+    const boardIds = new Set(data.boards.map(b => b.id));
+    const columnIds = new Set(data.columns.map(c => c.id));
+
+    // Check that all columns reference valid boards
+    for (const column of data.columns) {
+      if (!boardIds.has(column.board_id)) {
+        throw new Error(`Column "${column.name}" references non-existent board ID: ${column.board_id}`);
+      }
+    }
+
+    // Check that all tasks reference valid columns
+    for (const task of data.tasks) {
+      if (!columnIds.has(task.column_id)) {
+        throw new Error(`Task "${task.title}" references non-existent column ID: ${task.column_id}`);
+      }
+    }
+
+    // Check that landing column IDs are valid
+    for (const board of data.boards) {
+      if (board.landing_column_id && !columnIds.has(board.landing_column_id)) {
+        throw new Error(`Board "${board.name}" references non-existent landing column ID: ${board.landing_column_id}`);
+      }
+    }
+
     const transaction = this.db.transaction(() => {
       // Clear existing data
       this.db.exec(`DELETE FROM tasks`);
