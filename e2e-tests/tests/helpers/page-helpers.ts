@@ -73,6 +73,39 @@ export class PageHelpers {
     }
   }
 
+  async isElementVisibleByText(text: string, elementType = '*'): Promise<boolean> {
+    try {
+      const element = await this.page.evaluate((text, elementType) => {
+        const elements = Array.from(document.querySelectorAll(elementType));
+        return elements.some(el => el.textContent?.includes(text));
+      }, text, elementType);
+      return element;
+    } catch {
+      return false;
+    }
+  }
+
+  async clickElementByText(text: string, elementType = '*'): Promise<void> {
+    const element = await this.page.evaluateHandle((text, elementType) => {
+      const elements = Array.from(document.querySelectorAll(elementType));
+      return elements.find(el => el.textContent?.includes(text));
+    }, text, elementType);
+    
+    if (!element) {
+      throw new Error(`Element with text "${text}" not found`);
+    }
+    
+    await element.click();
+  }
+
+  async getElementTextByContent(text: string, elementType = '*'): Promise<string> {
+    return this.page.evaluate((text, elementType) => {
+      const elements = Array.from(document.querySelectorAll(elementType));
+      const element = elements.find(el => el.textContent?.includes(text));
+      return element?.textContent?.trim() || '';
+    }, text, elementType);
+  }
+
   async getElementAttribute(selector: string, attribute: string): Promise<string | null> {
     await this.page.waitForSelector(selector);
     return this.page.$eval(selector, (el, attr) => el.getAttribute(attr), attribute);
@@ -99,9 +132,9 @@ declare module 'puppeteer' {
 // Add the waitForLoadState method to the Page prototype
 puppeteer.Page.prototype.waitForLoadState = async function(state: string) {
   if (state === 'networkidle') {
-    await this.waitForLoadState('load');
-    // Wait for network to be idle using a better approach
-    await this.waitForLoadState('load');
+    await this.waitForFunction(() => document.readyState === 'complete');
+    // Wait a bit longer for network requests to settle
+    await new Promise(resolve => setTimeout(resolve, 100));
   } else {
     await this.waitForFunction(() => document.readyState === 'complete');
   }
