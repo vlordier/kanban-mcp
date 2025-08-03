@@ -1,22 +1,21 @@
-import Database from 'better-sqlite3';
-import { KanbanDB } from '@kanban-mcp/db';
+import { DatabaseFactory, KanbanDB } from '@kanban-mcp/db';
 import { WebServer } from '../src/web-server';
 
 describe('Import/Export API Endpoints', () => {
-  let db: Database.Database;
+  let databaseService: any;
   let kanbanDb: KanbanDB;
   let webServer: WebServer;
   let serverInstance: any;
 
   beforeEach(async () => {
     // Create a new in-memory database for each test
-    db = new Database(':memory:');
+    databaseService = await DatabaseFactory.createLegacyDatabase({
+      provider: 'sqlite',
+      url: 'file::memory:?cache=shared',
+    });
 
-    // Start transaction
-    db.prepare('BEGIN TRANSACTION').run();
-
-    // Create a new KanbanDB instance with the in-memory database
-    kanbanDb = new KanbanDB(db);
+    // Create a new KanbanDB instance with the database service
+    kanbanDb = new KanbanDB(databaseService);
 
     // Create and start web server
     webServer = new WebServer(kanbanDb);
@@ -27,13 +26,7 @@ describe('Import/Export API Endpoints', () => {
   afterEach(async () => {
     // Close connections
     await webServer.close();
-
-    // Only roll back if database is still open
-    if (db.open) {
-      db.prepare('ROLLBACK').run();
-    }
-
-    kanbanDb.close();
+    await kanbanDb.close();
   });
 
   describe('GET /api/export', () => {
@@ -57,7 +50,7 @@ describe('Import/Export API Endpoints', () => {
 
     it('should export database with data', async () => {
       // Create test data
-      const { boardId } = kanbanDb.createBoard(
+      const { boardId } = await kanbanDb.createBoard(
         'Test Board',
         'Test Goal',
         [
@@ -67,8 +60,8 @@ describe('Import/Export API Endpoints', () => {
         0
       );
 
-      const columns = kanbanDb.getColumnsForBoard(boardId);
-      const task = kanbanDb.addTaskToColumn(columns[0].id, 'Test Task', 'Test Content');
+      const columns = await kanbanDb.getColumnsForBoard(boardId);
+      await kanbanDb.addTaskToColumn(columns[0]!.id, 'Test Task', 'Test Content');
 
       const response = await serverInstance.inject({
         method: 'GET',
@@ -121,7 +114,7 @@ describe('Import/Export API Endpoints', () => {
   describe('POST /api/import', () => {
     it('should import empty database', async () => {
       // Add some initial data that should be cleared
-      kanbanDb.createBoard(
+      await kanbanDb.createBoard(
         'Initial Board',
         'Initial Goal',
         [{ name: 'Initial Column', position: 0, wipLimit: 3 }],
@@ -151,7 +144,7 @@ describe('Import/Export API Endpoints', () => {
       );
 
       // Verify database is empty
-      const boards = kanbanDb.getAllBoards();
+      const boards = await kanbanDb.getAllBoards();
       expect(boards.length).toBe(0);
     });
 
@@ -208,16 +201,16 @@ describe('Import/Export API Endpoints', () => {
       );
 
       // Verify imported data
-      const board = kanbanDb.getBoardById('550e8400-e29b-41d4-a716-446655440001');
+      const board = await kanbanDb.getBoardById('550e8400-e29b-41d4-a716-446655440001');
       expect(board).toBeDefined();
       expect(board?.name).toBe('Imported Board');
       expect(board?.goal).toBe('Imported Goal');
 
-      const task = kanbanDb.getTaskById('550e8400-e29b-41d4-a716-446655440003');
+      const task = await kanbanDb.getTaskById('550e8400-e29b-41d4-a716-446655440003');
       expect(task).toBeDefined();
       expect(task?.title).toBe('Imported Task');
       expect(task?.content).toBe('Imported Content');
-      expect(task?.update_reason).toBe('Import reason');
+      expect(task?.updateReason).toBe('Import reason');
     });
 
     it('should validate import data structure', async () => {
@@ -310,18 +303,18 @@ describe('Import/Export API Endpoints', () => {
 
     it('should replace existing data on import', async () => {
       // Create initial data
-      const { boardId: initialBoardId } = kanbanDb.createBoard(
+      const { boardId: initialBoardId } = await kanbanDb.createBoard(
         'Initial Board',
         'Initial Goal',
         [{ name: 'Initial Column', position: 0, wipLimit: 3 }],
         0
       );
 
-      const initialColumns = kanbanDb.getColumnsForBoard(initialBoardId);
-      kanbanDb.addTaskToColumn(initialColumns[0].id, 'Initial Task', 'Initial Content');
+      const initialColumns = await kanbanDb.getColumnsForBoard(initialBoardId);
+      await kanbanDb.addTaskToColumn(initialColumns[0]!.id, 'Initial Task', 'Initial Content');
 
       // Verify initial data exists
-      expect(kanbanDb.getAllBoards().length).toBe(1);
+      expect((await kanbanDb.getAllBoards()).length).toBe(1);
 
       // Import new data
       const importData = {
@@ -360,13 +353,13 @@ describe('Import/Export API Endpoints', () => {
       expect(response.statusCode).toBe(200);
 
       // Verify old data is replaced
-      const allBoards = kanbanDb.getAllBoards();
+      const allBoards = await kanbanDb.getAllBoards();
       expect(allBoards.length).toBe(1);
-      expect(allBoards[0].id).toBe('550e8400-e29b-41d4-a716-446655440010');
-      expect(allBoards[0].name).toBe('New Board');
+      expect(allBoards[0]?.id).toBe('550e8400-e29b-41d4-a716-446655440010');
+      expect(allBoards[0]?.name).toBe('New Board');
 
       // Verify original board no longer exists
-      const originalBoard = kanbanDb.getBoardById(initialBoardId);
+      const originalBoard = await kanbanDb.getBoardById(initialBoardId);
       expect(originalBoard).toBeUndefined();
     });
 
@@ -467,10 +460,10 @@ describe('Import/Export API Endpoints', () => {
       );
 
       // Verify relationships are maintained
-      const board1Data = kanbanDb.getBoardWithColumnsAndTasks(
+      const board1Data = await kanbanDb.getBoardWithColumnsAndTasks(
         '550e8400-e29b-41d4-a716-446655440020'
       );
-      const board2Data = kanbanDb.getBoardWithColumnsAndTasks(
+      const board2Data = await kanbanDb.getBoardWithColumnsAndTasks(
         '550e8400-e29b-41d4-a716-446655440021'
       );
 
@@ -495,16 +488,16 @@ describe('Import/Export API Endpoints', () => {
       expect(board1Col2Tasks?.length).toBe(1);
       expect(board2Col1Tasks?.length).toBe(1);
 
-      expect(board1Col1Tasks?.[0].title).toBe('Task 1');
-      expect(board1Col2Tasks?.[0].title).toBe('Task 2');
-      expect(board2Col1Tasks?.[0].title).toBe('Task 3');
+      expect(board1Col1Tasks?.[0]?.title).toBe('Task 1');
+      expect(board1Col2Tasks?.[0]?.title).toBe('Task 2');
+      expect(board2Col1Tasks?.[0]?.title).toBe('Task 3');
     });
   });
 
   describe('Export/Import round trip', () => {
     it('should maintain data integrity through API export and import', async () => {
       // Create test data
-      const { boardId } = kanbanDb.createBoard(
+      const { boardId } = await kanbanDb.createBoard(
         'Test Board',
         'Test Goal',
         [
@@ -515,12 +508,12 @@ describe('Import/Export API Endpoints', () => {
         0
       );
 
-      const columns = kanbanDb.getColumnsForBoard(boardId);
-      const task1 = kanbanDb.addTaskToColumn(columns[0].id, 'Task 1', 'Content 1');
-      const task2 = kanbanDb.addTaskToColumn(columns[1].id, 'Task 2', 'Content 2');
+      const columns = await kanbanDb.getColumnsForBoard(boardId);
+      const task1 = await kanbanDb.addTaskToColumn(columns[0]!.id, 'Task 1', 'Content 1');
+      const task2 = await kanbanDb.addTaskToColumn(columns[1]!.id, 'Task 2', 'Content 2');
 
       // Move task to add update reason
-      kanbanDb.moveTask(task1.id, columns[2].id, 'Completed');
+      await kanbanDb.moveTask(task1.id, columns[2]!.id, 'Completed');
 
       // Export data
       const exportResponse = await serverInstance.inject({
@@ -544,23 +537,23 @@ describe('Import/Export API Endpoints', () => {
       expect(importResponse.statusCode).toBe(200);
 
       // Verify all data is preserved
-      const importedBoard = kanbanDb.getBoardById(boardId);
+      const importedBoard = await kanbanDb.getBoardById(boardId);
       expect(importedBoard).toBeDefined();
       expect(importedBoard?.name).toBe('Test Board');
       expect(importedBoard?.goal).toBe('Test Goal');
 
-      const importedColumns = kanbanDb.getColumnsForBoard(boardId);
+      const importedColumns = await kanbanDb.getColumnsForBoard(boardId);
       expect(importedColumns.length).toBe(3);
 
-      const importedTask1 = kanbanDb.getTaskById(task1.id);
-      const importedTask2 = kanbanDb.getTaskById(task2.id);
+      const importedTask1 = await kanbanDb.getTaskById(task1.id);
+      const importedTask2 = await kanbanDb.getTaskById(task2.id);
 
       expect(importedTask1?.title).toBe('Task 1');
-      expect(importedTask1?.column_id).toBe(columns[2].id); // Should be in Done column
-      expect(importedTask1?.update_reason).toBe('Completed');
+      expect(importedTask1?.columnId).toBe(columns[2]!.id); // Should be in Done column
+      expect(importedTask1?.updateReason).toBe('Completed');
 
       expect(importedTask2?.title).toBe('Task 2');
-      expect(importedTask2?.column_id).toBe(columns[1].id); // Should be in In Progress column
+      expect(importedTask2?.columnId).toBe(columns[1]!.id); // Should be in In Progress column
     });
   });
 });

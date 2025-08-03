@@ -1,5 +1,18 @@
 // Modern database service exports
-export { DatabaseService } from './database.service.js';
+export { DatabaseService } from './services/database.service.js';
+export { 
+  BaseDatabaseService,
+  BoardService,
+  TaskService,
+  ColumnService,
+  DatabaseError,
+  ValidationError,
+  NotFoundError,
+  BusinessLogicError,
+  ColumnCapacityFullError,
+  withRetry,
+  logger
+} from './services/index.js';
 export { DatabaseFactory } from './database.factory.js';
 export { 
   createDatabaseConfig, 
@@ -39,7 +52,7 @@ export {
 } from './database.factory.js';
 
 // Legacy compatibility exports
-export { KanbanDB, ColumnCapacityFullError } from './legacy-adapter.js';
+export { KanbanDB } from './legacy-adapter.js';
 export { createDBInstance } from './database.factory.js';
 
 // Seed functions

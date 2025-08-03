@@ -1,9 +1,9 @@
-/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-// https://vitejs.dev/config/
+// Main Vite config for development and build
+// Note: Unit tests use vitest.config.ts, E2E tests use playwright.config.ts
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -26,11 +26,5 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    css: true,
   },
 });

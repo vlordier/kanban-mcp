@@ -34,7 +34,7 @@ mcpServer.tool(
     ];
 
     const landingColPos = 1; // The "To Do" column
-    const { boardId } = kanbanDB.createBoard(name, projectGoal, columns, landingColPos);
+    const { boardId } = await kanbanDB.createBoard(name, projectGoal, columns, landingColPos);
 
     return {
       content: [
@@ -58,7 +58,7 @@ mcpServer.tool(
     content: z.string(),
   },
   async ({ boardId, title, content }) => {
-    const board = kanbanDB.getBoardById(boardId);
+    const board = await kanbanDB.getBoardById(boardId);
 
     if (!board) {
       return {
@@ -72,7 +72,7 @@ mcpServer.tool(
       };
     }
 
-    if (!board.landing_column_id) {
+    if (!board.landingColumnId) {
       return {
         content: [
           {
@@ -85,14 +85,14 @@ mcpServer.tool(
     }
 
     // Find the landing column
-    const column = kanbanDB.getColumnById(board.landing_column_id);
+    const column = await kanbanDB.getColumnById(board.landingColumnId);
 
     if (!column) {
       return {
         content: [
           {
             type: 'text',
-            text: `Error: Could not find landing column with ID: ${board.landing_column_id}`,
+            text: `Error: Could not find landing column with ID: ${board.landingColumnId}`,
           },
         ],
         isError: true,
@@ -102,7 +102,7 @@ mcpServer.tool(
     let task;
 
     try {
-      task = kanbanDB.addTaskToColumn(board.landing_column_id, title, content);
+      task = await kanbanDB.addTaskToColumn(board.landingColumnId, title, content);
     } catch (error) {
       if (error instanceof ColumnCapacityFullError) {
         return {
@@ -136,12 +136,12 @@ mcpServer.tool(
       ],
       taskInfo: {
         id: task.id,
-        columnId: board.landing_column_id,
+        columnId: board.landingColumnId,
         title,
         content,
         position: task.position,
-        createdAt: task.created_at,
-        updatedAt: task.updated_at,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
       },
     };
   }
@@ -156,7 +156,7 @@ mcpServer.tool(
     reason: z.string().optional(),
   },
   async ({ taskId, targetColumnId, reason }) => {
-    const task = kanbanDB.getTaskById(taskId);
+    const task = await kanbanDB.getTaskByIdAsync(taskId);
 
     if (!task) {
       return {

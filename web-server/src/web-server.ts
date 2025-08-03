@@ -1,9 +1,22 @@
 import Fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fastifyCors from '@fastify/cors';
+import fastifyHelmet from '@fastify/helmet';
 import path from 'path';
 import { z } from 'zod';
 import { KanbanDB, ColumnCapacityFullError, Board, Column, Task } from '@kanban-mcp/db';
+
+// Load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Import new middleware and services
+import config from './config/environment.js';
+import { requestIdMiddleware } from './middleware/request-id.js';
+import { auditLoggerMiddleware, setupAuditLogging } from './middleware/audit-logger.js';
+import { setupErrorHandler, validateRequest } from './middleware/validation.js';
+import { setupRateLimiting } from './security/rate-limiter.js';
+import { setupAuthentication, authenticationMiddleware, requireRole } from './auth/auth.service.js';
 
 // Validation schemas
 const BoardSchema = z.object({
@@ -46,20 +59,21 @@ const CreateBoardSchema = z.object({
   goal: z.string().min(1).max(1000).trim(),
 });
 
-const UpdateTaskSchema = z.object({
-  content: z.string().min(1),
-});
+// Note: These schemas are defined but currently unused - keeping for future API endpoints
+// const UpdateTaskSchema = z.object({
+//   content: z.string().min(1),
+// });
 
-const CreateTaskSchema = z.object({
-  columnId: z.string().uuid(),
-  title: z.string().min(1).max(255).trim(),
-  content: z.string().min(1),
-});
+// const CreateTaskSchema = z.object({
+//   columnId: z.string().uuid(),
+//   title: z.string().min(1).max(255).trim(),
+//   content: z.string().min(1),
+// });
 
-const MoveTaskSchema = z.object({
-  targetColumnId: z.string().uuid(),
-  reason: z.string().optional(),
-});
+// const MoveTaskSchema = z.object({
+//   targetColumnId: z.string().uuid(),
+//   reason: z.string().optional(),
+// });
 
 /**
  * WebServer class that handles the web server functionality
@@ -123,28 +137,22 @@ class WebServer {
     // Create Fastify instance with structured logging
     this.server = Fastify({
       logger: {
-        level: process.env.LOG_LEVEL || 'info',
-        transport:
-          process.env.NODE_ENV === 'development'
-            ? {
-                target: 'pino-pretty',
-                options: {
-                  colorize: true,
-                  translateTime: 'HH:MM:ss Z',
-                  ignore: 'pid,hostname',
-                },
-              }
-            : undefined,
+        level: config.get('LOG_LEVEL'),
+        transport: config.isDevelopment()
+          ? {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+              },
+            }
+          : undefined,
       },
+      trustProxy: config.get('TRUST_PROXY'),
     });
 
-    // Register CORS plugin with localhost-only configuration
-    this.server.register(fastifyCors, {
-      origin: ['http://localhost:8221', 'http://127.0.0.1:8221'],
-      methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
-      credentials: true,
-    });
-
+    this.setupMiddleware();
     this.setupErrorHandlers();
     this.setupStaticFiles();
     this.setupRoutes();
@@ -154,55 +162,58 @@ class WebServer {
   }
 
   /**
+   * Sets up all middleware in the correct order
+   */
+  private async setupMiddleware(): Promise<void> {
+    // 1. Request ID and audit logging (first)
+    this.server.addHook('onRequest', requestIdMiddleware);
+    this.server.addHook('onRequest', auditLoggerMiddleware);
+    setupAuditLogging(this.server);
+
+    // 2. Security headers
+    await this.server.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for Tailwind CSS
+          scriptSrc: ["'self'"],
+          imgSrc: ["'self'", "data:", "blob:"], // Allow data URLs and blob URLs for images
+          fontSrc: ["'self'"],
+          connectSrc: ["'self'"], // Allow API calls to same origin
+          frameSrc: ["'none'"], // Prevent framing attacks
+          objectSrc: ["'none'"], // Prevent object/embed XSS
+          upgradeInsecureRequests: config.isProduction() ? [] : undefined,
+        },
+      },
+      // Additional security headers
+      crossOriginEmbedderPolicy: false, // Disable COEP to avoid issues with local development
+      hsts: config.isProduction() ? {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true,
+      } : false,
+    });
+
+    // 3. CORS configuration
+    await this.server.register(fastifyCors, {
+      origin: config.get('CORS_ORIGINS'),
+      methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+      credentials: true,
+    });
+
+    // 4. Rate limiting
+    await setupRateLimiting(this.server);
+
+    // 5. Authentication
+    await setupAuthentication(this.server);
+  }
+
+  /**
    * Sets up error handlers
    */
   private setupErrorHandlers(): void {
-    // Global error handler
-    this.server.setErrorHandler((error, request, reply) => {
-      const errorId = crypto.randomUUID();
-
-      // Log error with context
-      request.log.error(
-        {
-          error: {
-            message: error.message,
-            stack: error.stack,
-            code: error.code,
-            statusCode: error.statusCode,
-          },
-          errorId,
-          method: request.method,
-          url: request.url,
-          ip: request.ip,
-          userAgent: request.headers['user-agent'],
-        },
-        'Request error occurred'
-      );
-
-      // Send structured error response
-      const statusCode = error.statusCode || 500;
-
-      if (statusCode >= 500) {
-        // Don't expose internal errors to client
-        reply.code(500).send({
-          error: 'Internal Server Error',
-          errorId,
-          timestamp: new Date().toISOString(),
-        });
-      } else {
-        // Client errors can be exposed
-        reply.code(statusCode).send({
-          error: error.message || 'Bad Request',
-          errorId,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    });
-
-    // Request validation error handler
-    this.server.setSchemaErrorFormatter((errors, dataVar) => {
-      return new Error(`Validation error in ${dataVar}: ${errors.map(e => e.message).join(', ')}`);
-    });
+    // Use the new centralized error handler
+    setupErrorHandler(this.server);
   }
 
   /**
@@ -210,7 +221,7 @@ class WebServer {
    */
   private setupRoutes(): void {
     // Health check endpoint
-    this.server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
+    this.server.get('/health', async (_request: FastifyRequest, reply: FastifyReply) => {
       const startTime = Date.now();
       const health = {
         status: 'healthy',
@@ -232,7 +243,7 @@ class WebServer {
       // Check database health
       try {
         const dbStartTime = Date.now();
-        this.kanbanDB.getAllBoards(); // Simple query to test connection
+        await this.kanbanDB.getAllBoards(); // Simple query to test connection
         health.checks.database = {
           status: 'healthy',
           responseTime: Date.now() - dbStartTime,
@@ -268,9 +279,9 @@ class WebServer {
 
     // API Routes
     // Get all boards
-    this.server.get('/api/v1/boards', async (request: FastifyRequest, reply: FastifyReply) => {
+    this.server.get('/api/v1/boards', async (request: any, reply: FastifyReply) => {
       try {
-        const boards = this.kanbanDB.getAllBoards();
+        const boards = await this.kanbanDB.getAllBoards();
         return reply.code(200).send(boards);
       } catch (error) {
         request.log.error(error);
@@ -278,28 +289,15 @@ class WebServer {
       }
     });
 
-    // Create a new board
+    // Create a new board (protected route)
     this.server.post(
       '/api/v1/boards',
-      async (
-        request: FastifyRequest<{
-          Body: { name: string; goal: string };
-        }>,
-        reply: FastifyReply
-      ) => {
+      {
+        preHandler: [authenticationMiddleware, validateRequest(CreateBoardSchema)],
+      },
+      async (request: any, reply: FastifyReply) => {
         try {
-          const validation = CreateBoardSchema.safeParse(request.body);
-          if (!validation.success) {
-            return reply.code(400).send({
-              error: 'Validation failed',
-              details: validation.error.issues.map(issue => ({
-                path: issue.path.join('.'),
-                message: issue.message,
-              })),
-            });
-          }
-
-          const { name, goal } = validation.data;
+          const { name, goal } = request.body as { name: string; goal: string };
 
           // Create default columns
           const columns = [
@@ -310,7 +308,7 @@ class WebServer {
           ];
 
           const landingColPos = 1; // The "To Do" column
-          const { boardId } = this.kanbanDB.createBoard(name, goal, columns, landingColPos);
+          const { boardId } = await this.kanbanDB.createBoard(name, goal, columns, landingColPos);
 
           return reply.code(201).send({
             success: true,
@@ -327,10 +325,10 @@ class WebServer {
     // Get a specific board with its columns and tasks
     this.server.get(
       '/api/v1/boards/:boardId',
-      async (request: FastifyRequest<{ Params: { boardId: string } }>, reply: FastifyReply) => {
+      async (request: any, reply: FastifyReply) => {
         try {
           const { boardId } = request.params;
-          const boardData = this.kanbanDB.getBoardWithColumnsAndTasks(boardId);
+          const boardData = await this.kanbanDB.getBoardWithColumnsAndTasks(boardId);
 
           if (!boardData) {
             return reply.code(404).send({ error: 'Board not found' });
@@ -344,21 +342,24 @@ class WebServer {
       }
     );
 
-    // Delete a board and all its related data
+    // Delete a board and all its related data (admin only)
     this.server.delete(
       '/api/v1/boards/:boardId',
-      async (request: FastifyRequest<{ Params: { boardId: string } }>, reply: FastifyReply) => {
+      {
+        preHandler: [authenticationMiddleware, requireRole('admin')],
+      },
+      async (request: any, reply: FastifyReply) => {
         try {
           const { boardId } = request.params;
 
           // Check if board exists
-          const board = this.kanbanDB.getBoardById(boardId);
+          const board = await this.kanbanDB.getBoardById(boardId);
           if (!board) {
             return reply.code(404).send({ error: 'Board not found' });
           }
 
           // Delete the board and all related data
-          const changes = this.kanbanDB.deleteBoard(boardId);
+          const changes = await this.kanbanDB.deleteBoard(boardId);
 
           return reply.code(200).send({
             success: true,
@@ -379,7 +380,7 @@ class WebServer {
       async (request: FastifyRequest<{ Params: { taskId: string } }>, reply: FastifyReply) => {
         try {
           const { taskId } = request.params;
-          const task = this.kanbanDB.getTaskById(taskId);
+          const task = await this.kanbanDB.getTaskById(taskId);
 
           if (!task) {
             return reply.code(404).send({ error: 'Task not found' });
@@ -408,13 +409,13 @@ class WebServer {
           const { content } = request.body as { content: string };
 
           // Check if task exists
-          const task = this.kanbanDB.getTaskById(taskId);
+          const task = await this.kanbanDB.getTaskById(taskId);
           if (!task) {
             return reply.code(404).send({ error: 'Task not found' });
           }
 
           // Update the task
-          const updatedTask = this.kanbanDB.updateTask(taskId, content);
+          const updatedTask = await this.kanbanDB.updateTask(taskId, content);
 
           // Return success response
           return reply.code(200).send({
@@ -450,14 +451,14 @@ class WebServer {
           }
 
           // Check if column exists
-          const column = this.kanbanDB.getColumnById(columnId);
+          const column = await this.kanbanDB.getColumnById(columnId);
           if (!column) {
             return reply.code(404).send({ error: 'Column not found' });
           }
 
           try {
             // Create the task
-            const task = this.kanbanDB.addTaskToColumn(columnId, title, content);
+            const task = await this.kanbanDB.addTaskToColumn(columnId, title, content);
 
             return reply.code(201).send({
               success: true,
@@ -489,13 +490,13 @@ class WebServer {
           const { taskId } = request.params;
 
           // Check if task exists
-          const task = this.kanbanDB.getTaskById(taskId);
+          const task = await this.kanbanDB.getTaskById(taskId);
           if (!task) {
             return reply.code(404).send({ error: 'Task not found' });
           }
 
           // Delete the task
-          const changes = this.kanbanDB.deleteTask(taskId);
+          const changes = await this.kanbanDB.deleteTask(taskId);
 
           return reply.code(200).send({
             success: true,
@@ -528,27 +529,27 @@ class WebServer {
           };
 
           // Check if task exists
-          const task = this.kanbanDB.getTaskById(taskId);
+          const task = await this.kanbanDB.getTaskById(taskId);
           if (!task) {
             return reply.code(404).send({ error: 'Task not found' });
           }
 
           // Check if target column exists
-          const targetColumn = this.kanbanDB.getColumnById(targetColumnId);
+          const targetColumn = await this.kanbanDB.getColumnById(targetColumnId);
           if (!targetColumn) {
             return reply.code(404).send({ error: 'Target column not found' });
           }
 
           try {
             // Move the task
-            this.kanbanDB.moveTask(taskId, targetColumnId, reason);
+            await this.kanbanDB.moveTask(taskId, targetColumnId, reason);
 
             // Return success response
             return reply.code(200).send({
               success: true,
               message: 'Task moved successfully',
               taskId,
-              sourceColumnId: task.column_id,
+              sourceColumnId: task.columnId,
               targetColumnId,
             });
           } catch (error) {
@@ -580,13 +581,13 @@ class WebServer {
       }
 
       try {
-        const rawData = this.kanbanDB.exportDatabase();
+        const rawData = await this.kanbanDB.exportDatabase();
 
         // Transform data to handle null -> undefined conversion for TypeScript
         const data = {
           boards: rawData.boards,
           columns: rawData.columns,
-          tasks: rawData.tasks.map(task => ({
+          tasks: rawData.tasks.map((task: any) => ({
             ...task,
             update_reason: task.update_reason || undefined,
           })),
@@ -664,7 +665,7 @@ class WebServer {
           };
 
           // Import the data
-          this.kanbanDB.importDatabase(dbData);
+          await this.kanbanDB.importDatabase(dbData);
 
           return reply.code(200).send({
             success: true,
@@ -681,8 +682,8 @@ class WebServer {
     );
 
     // handle 404 by redirecting to /
-    this.server.setNotFoundHandler((request: FastifyRequest, reply: FastifyReply) => {
-      reply.redirect('/');
+    this.server.setNotFoundHandler((_request: FastifyRequest, reply: FastifyReply) => {
+      return reply.redirect('/');
     });
   }
 
@@ -703,19 +704,20 @@ class WebServer {
         prefix: '/',
         decorateReply: false,
         // Don't serve static files for API routes
-        setHeaders: (res, path) => {
+        setHeaders: (_res, path) => {
           if (path.includes('/api/')) {
             return false;
           }
+          return undefined;
         },
       });
 
       // Handle SPA routing - serve index.html for non-API routes
       this.server.setNotFoundHandler((request, reply) => {
         if (request.url.startsWith('/api/')) {
-          reply.code(404).send({ error: 'API route not found' });
+          return reply.code(404).send({ error: 'API route not found' });
         } else {
-          reply.sendFile('index.html');
+          return reply.sendFile('index.html');
         }
       });
     }
@@ -726,10 +728,25 @@ class WebServer {
    */
   async start(): Promise<void> {
     try {
-      await this.server.listen({ port: 8221, host: 'localhost' });
-      console.log(`Server is running at http://localhost:8221`);
+      const port = config.get('PORT');
+      const host = config.get('HOST');
+      
+      await this.server.listen({ port, host });
+      
+      this.server.log.info({
+        port,
+        host,
+        nodeEnv: config.get('NODE_ENV'),
+      }, `🚀 Server is running at http://${host}:${port}`);
+      
+      // Log important security information
+      if (config.isProduction()) {
+        this.server.log.info('🔒 Running in production mode with security hardening enabled');
+      } else {
+        this.server.log.warn('⚠️  Running in development mode - security features may be relaxed');
+      }
     } catch (err) {
-      this.server.log.error(err);
+      this.server.log.fatal(err, 'Failed to start server');
       process.exit(1);
     }
   }

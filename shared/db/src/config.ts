@@ -45,6 +45,47 @@ export function createDatabaseConfig(options: DatabaseConfigOptions = {}): Datab
 }
 
 /**
+ * Create production-optimized database configuration
+ */
+export function createProductionDatabaseConfig(options: DatabaseConfigOptions = {}): DatabaseConfig {
+  const baseConfig = createDatabaseConfig(options);
+  
+  return {
+    ...baseConfig,
+    // Production connection pool settings
+    maxConnections: options.maxConnections || 
+      parseInt(process.env.DB_CONNECTION_POOL_MAX || '20'),
+    minConnections: parseInt(process.env.DB_CONNECTION_POOL_MIN || '5'),
+    acquireTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000'),
+    idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '600000'),
+    
+    // Production query settings
+    queryTimeout: options.queryTimeout || 
+      parseInt(process.env.DATABASE_QUERY_TIMEOUT || '30000'),
+    
+    // Read replica support
+    readReplicas: process.env.READ_REPLICA_URLS ? 
+      process.env.READ_REPLICA_URLS.split(',').map(url => url.trim()) : 
+      [],
+    
+    // Migration settings
+    migrations: {
+      autoRun: process.env.NODE_ENV !== 'production', // Don't auto-run in production
+      tableName: '_migrations',
+    },
+    
+    // Performance settings
+    enableQueryCache: process.env.NODE_ENV === 'production',
+    cacheSize: parseInt(process.env.DB_CACHE_SIZE || '1000'),
+    
+    // Security settings
+    ssl: process.env.DATABASE_SSL === 'true' ? {
+      rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false',
+    } : undefined,
+  };
+}
+
+/**
  * Get default database URL based on provider
  */
 function getDefaultUrl(provider: string): string {
