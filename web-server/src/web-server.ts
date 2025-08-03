@@ -57,6 +57,45 @@ class WebServer {
       }
     );
 
+    // Create a new board
+    this.server.post(
+      "/api/boards",
+      async (
+        request: FastifyRequest<{
+          Body: { name: string; goal: string };
+        }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const { name, goal } = request.body as { name: string; goal: string };
+          
+          if (!name || !goal) {
+            return reply.code(400).send({ error: "Name and goal are required" });
+          }
+          
+          // Create default columns
+          const columns = [
+            { name: "On Hold", position: 0, wipLimit: 0 },
+            { name: "To Do", position: 1, wipLimit: 0 },
+            { name: "In Progress", position: 2, wipLimit: 3 },
+            { name: "Done", position: 3, wipLimit: 0, isDoneColumn: true },
+          ];
+          
+          const landingColPos = 1; // The "To Do" column
+          const { boardId } = this.kanbanDB.createBoard(name, goal, columns, landingColPos);
+          
+          return reply.code(201).send({ 
+            success: true,
+            message: "Board created successfully",
+            boardId
+          });
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Internal Server Error" });
+        }
+      }
+    );
+
     // Get a specific board with its columns and tasks
     this.server.get(
       "/api/boards/:boardId",
@@ -163,6 +202,90 @@ class WebServer {
             success: true,
             message: "Task updated successfully",
             task: updatedTask
+          });
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Internal Server Error" });
+        }
+      }
+    );
+
+    // Create a new task
+    this.server.post(
+      "/api/tasks",
+      async (
+        request: FastifyRequest<{
+          Body: { columnId: string; title: string; content: string };
+        }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const { columnId, title, content } = request.body as { 
+            columnId: string; 
+            title: string; 
+            content: string; 
+          };
+          
+          if (!columnId || !title || !content) {
+            return reply.code(400).send({ error: "Column ID, title, and content are required" });
+          }
+          
+          // Check if column exists
+          const column = this.kanbanDB.getColumnById(columnId);
+          if (!column) {
+            return reply.code(404).send({ error: "Column not found" });
+          }
+          
+          try {
+            // Create the task
+            const task = this.kanbanDB.addTaskToColumn(columnId, title, content);
+            
+            return reply.code(201).send({ 
+              success: true,
+              message: "Task created successfully",
+              task
+            });
+          } catch (error) {
+            // Handle WIP limit error
+            if (error instanceof ColumnCapacityFullError) {
+              return reply.code(422).send({ 
+                error: "Column capacity full",
+                message: (error as Error).message
+              });
+            }
+            throw error;
+          }
+        } catch (error) {
+          request.log.error(error);
+          return reply.code(500).send({ error: "Internal Server Error" });
+        }
+      }
+    );
+
+    // Delete a task
+    this.server.delete(
+      "/api/tasks/:taskId",
+      async (
+        request: FastifyRequest<{ Params: { taskId: string } }>,
+        reply: FastifyReply
+      ) => {
+        try {
+          const { taskId } = request.params;
+          
+          // Check if task exists
+          const task = this.kanbanDB.getTaskById(taskId);
+          if (!task) {
+            return reply.code(404).send({ error: "Task not found" });
+          }
+          
+          // Delete the task
+          const changes = this.kanbanDB.deleteTask(taskId);
+          
+          return reply.code(200).send({ 
+            success: true,
+            message: "Task deleted successfully",
+            taskId,
+            changes
           });
         } catch (error) {
           request.log.error(error);

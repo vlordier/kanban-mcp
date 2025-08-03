@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-web-ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web-ui
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./web-ui/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run type checking
+      run: npm run typecheck
+    
+    - name: Run tests
+      run: npm run test:run
+    
+    - name: Build application
+      run: npm run build
+
+  test-mcp-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mcp-server
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./mcp-server/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build MCP server
+      run: npm run build
+
+  test-shared-db:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./shared/db
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./shared/db/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+
+  test-web-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web-server
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./web-server/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build web server
+      run: npm run build

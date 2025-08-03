@@ -1,0 +1,22 @@
+{
+  "name": "@kanban-mcp/errors",
+  "version": "1.0.0",
+  "description": "Error handling utilities for Kanban MCP",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@kanban-mcp/logging": "file:../logging"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}

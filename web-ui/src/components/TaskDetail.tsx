@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getTaskById, updateTask } from '../services/api';
+import { getTaskById, updateTask, deleteTask } from '../services/api';
 import MarkdownRenderer from './MarkdownRenderer';
+import { useNotifications } from './NotificationContainer';
 
 interface TaskDetailProps {
   taskId: string | null;
@@ -24,7 +25,9 @@ export default function TaskDetail({
 }: TaskDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const queryClient = useQueryClient();
+  const notifications = useNotifications();
 
   const { data: task, isLoading, error } = useQuery({
     queryKey: ['task', taskId],
@@ -49,6 +52,19 @@ export default function TaskDetail({
     }
   });
 
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: string) => deleteTask(taskId),
+    onSuccess: () => {
+      // Invalidate the board query to refresh the task list
+      queryClient.invalidateQueries({ queryKey: ['board'] });
+      notifications.success('Task deleted successfully');
+      onClose();
+    },
+    onError: (error) => {
+      notifications.error('Failed to delete task', error instanceof Error ? error.message : 'Unknown error');
+    }
+  });
+
   const handleEditClick = () => {
     setIsEditing(true);
   };
@@ -64,6 +80,20 @@ export default function TaskDetail({
       setEditContent(task.content);
     }
     setIsEditing(false);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (taskId) {
+      deleteTaskMutation.mutate(taskId);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   if (!taskId) return null;
@@ -84,15 +114,26 @@ export default function TaskDetail({
                     </DialogTitle>
                     <div className="ml-3 flex h-7 items-center space-x-2">
                       {!isEditing && task && (
-                        <button
-                          type="button"
-                          onClick={handleEditClick}
-                          className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                          aria-label="Edit task"
-                        >
-                          <span className="absolute -inset-2.5" />
-                          <PencilIcon className="h-5 w-5" aria-hidden="true" />
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleEditClick}
+                            className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            aria-label="Edit task"
+                          >
+                            <span className="absolute -inset-2.5" />
+                            <PencilIcon className="h-5 w-5" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDeleteClick}
+                            className="relative rounded-md bg-white text-gray-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            aria-label="Delete task"
+                          >
+                            <span className="absolute -inset-2.5" />
+                            <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                          </button>
+                        </>
                       )}
                       {onPrevTask && !isEditing && (
                         <button
@@ -218,6 +259,51 @@ export default function TaskDetail({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <Dialog
+          open={showDeleteConfirm}
+          onClose={handleCancelDelete}
+          className="relative z-[60]"
+        >
+          <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+          
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <DialogPanel className="mx-auto max-w-sm rounded bg-white p-6 shadow-xl">
+              <DialogTitle className="text-lg font-medium text-gray-900">
+                Delete Task
+              </DialogTitle>
+              
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete "{task?.title}"? 
+                  This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="mt-4 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  onClick={handleCancelDelete}
+                  disabled={deleteTaskMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleConfirmDelete}
+                  disabled={deleteTaskMutation.isPending}
+                >
+                  {deleteTaskMutation.isPending ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </DialogPanel>
+          </div>
+        </Dialog>
+      )}
     </Dialog>
   );
 }

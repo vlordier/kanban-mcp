@@ -116,7 +116,7 @@ mcpServer.tool(
           content: [
             {
               type: "text",
-              text: `Error: ${error.message}. Complete some tasks in this column first.`,
+              text: `Error: ${(error as Error).message}. Complete some tasks in this column first.`,
             },
           ],
           isError: true,
@@ -226,7 +226,7 @@ mcpServer.tool(
           content: [
             {
               type: "text",
-              text: `Error: ${error.message}. Work on tasks in the "${targetColumn.name}" column first.`,
+              text: `Error: ${(error as Error).message}. Work on tasks in the "${targetColumn.name}" column first.`,
             },
           ],
           isError: true,
