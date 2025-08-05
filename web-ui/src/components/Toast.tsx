@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -28,9 +28,16 @@ interface ToastProps {
   onDismiss: (id: string) => void;
 }
 
-const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
+function ToastComponent({ toast, onDismiss }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+
+  const handleDismiss = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onDismiss(toast.id);
+    }, 300); // Match the exit animation duration
+  }, [onDismiss, toast.id]);
 
   useEffect(() => {
     // Trigger enter animation
@@ -48,14 +55,7 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
       clearTimeout(timer);
       if (dismissTimer) clearTimeout(dismissTimer);
     };
-  }, [toast.duration, toast.persistent]);
-
-  const handleDismiss = () => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onDismiss(toast.id);
-    }, 300); // Match the exit animation duration
-  };
+  }, [toast.duration, toast.persistent, handleDismiss]);
 
   const getIcon = () => {
     const className = 'h-6 w-6';
@@ -121,14 +121,14 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
       </div>
     </div>
   );
-};
+}
 
 interface ToastContainerProps {
   toasts: Toast[];
   onDismiss: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
+export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-4">
       {toasts.map(toast => (
@@ -136,7 +136,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
       ))}
     </div>
   );
-};
+}
 
 // Toast manager hook
 export function useToasts() {

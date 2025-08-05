@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Kanban Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--vscode-font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+            background: var(--vscode-editor-background, #1e1e1e);
+            color: var(--vscode-foreground, #d4d4d4);
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--vscode-panel-border, #3c3c3c);
+        }
+        
+        h1 {
+            color: var(--vscode-titleBar-activeForeground, #cccccc);
+            font-size: 24px;
+        }
+        
+        .server-info {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .boards-container {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        
+        .board-card {
+            background: var(--vscode-editor-background, #252526);
+            border: 1px solid var(--vscode-panel-border, #3c3c3c);
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .board-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-color: var(--vscode-focusBorder, #0078d4);
+        }
+        
+        .board-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--vscode-titleBar-activeForeground, #cccccc);
+        }
+        
+        .board-goal {
+            color: var(--vscode-descriptionForeground, #cccccc);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .board-meta {
+            font-size: 11px;
+            opacity: 0.6;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--vscode-descriptionForeground, #cccccc);
+        }
+        
+        .error {
+            background: var(--vscode-inputValidation-errorBackground, #5a1d1d);
+            border: 1px solid var(--vscode-inputValidation-errorBorder, #be1100);
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: var(--vscode-terminal-ansiGreen, #16825d);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--vscode-descriptionForeground, #cccccc);
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--vscode-titleBar-activeForeground, #cccccc);
+        }
+        
+        button {
+            background: var(--vscode-button-background, #0e639c);
+            color: var(--vscode-button-foreground, #ffffff);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: var(--vscode-button-hoverBackground, #1177bb);
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--vscode-progressBar-background, #3c3c3c);
+            border-top: 2px solid var(--vscode-progressBar-foreground, #0078d4);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Kanban Boards</h1>
+        <div class="server-info">
+            <div>Server: <span id="serverUrl">Loading...</span></div>
+            <div>Status: <span id="serverStatus">Connecting...</span></div>
+        </div>
+    </div>
+    
+    <div id="loadingContainer" class="loading">
+        <div class="spinner"></div>
+        Loading your boards...
+    </div>
+    
+    <div id="errorContainer" style="display: none;"></div>
+    <div id="boardsContainer" class="boards-container" style="display: none;"></div>
+    
+    <script>
+        console.log('🚀 Simple Kanban Board Interface Loaded');
+        
+        // Configuration
+        const API_BASE_URL = 'http://localhost:3000';
+        let vscode = null;
+        
+        // Initialize VSCode API if available
+        if (typeof acquireVsCodeApi !== 'undefined') {
+            vscode = acquireVsCodeApi();
+            console.log('✅ VSCode API available');
+        }
+        
+        // Update server info display
+        document.getElementById('serverUrl').textContent = API_BASE_URL;
+        
+        // API helper function
+        async function fetchFromAPI(endpoint) {
+            console.log(`🔄 Fetching ${API_BASE_URL}${endpoint}`);
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                console.log(`✅ Fetched ${endpoint}:`, data);
+                return data;
+            } catch (error) {
+                console.error(`❌ Failed to fetch ${endpoint}:`, error);
+                throw error;
+            }
+        }
+        
+        // Load and display boards
+        async function loadBoards() {
+            try {
+                document.getElementById('serverStatus').textContent = 'Connected';
+                
+                const boards = await fetchFromAPI('/api/boards');
+                
+                const loadingContainer = document.getElementById('loadingContainer');
+                const boardsContainer = document.getElementById('boardsContainer');
+                const errorContainer = document.getElementById('errorContainer');
+                
+                loadingContainer.style.display = 'none';
+                errorContainer.style.display = 'none';
+                
+                if (boards.length === 0) {
+                    boardsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No boards found</h3>
+                            <p>Create your first board to get started!</p>
+                            <button onclick="createBoard()">Create Board</button>
+                        </div>
+                    `;
+                } else {
+                    boardsContainer.innerHTML = boards.map(board => `
+                        <div class="board-card" onclick="openBoard('${board.id}')">
+                            <div class="board-name">${escapeHtml(board.name)}</div>
+                            <div class="board-goal">${escapeHtml(board.goal || 'No description')}</div>
+                            <div class="board-meta">
+                                <span>ID: ${board.id}</span>
+                                <span>Created: ${new Date(board.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                boardsContainer.style.display = 'grid';
+                
+            } catch (error) {
+                console.error('❌ Failed to load boards:', error);
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('serverStatus').textContent = 'Error';
+                
+                const errorContainer = document.getElementById('errorContainer');
+                errorContainer.innerHTML = `
+                    <div class="error">
+                        <strong>Failed to load boards</strong><br>
+                        ${error.message}<br>
+                        <small>Make sure the server is running at ${API_BASE_URL}</small><br>
+                        <button onclick="loadBoards()">Retry</button>
+                    </div>
+                `;
+                errorContainer.style.display = 'block';
+            }
+        }
+        
+        // Open board function
+        function openBoard(boardId) {
+            console.log(`🎯 Opening board: ${boardId}`);
+            if (vscode) {
+                // Send message to VSCode to open board details
+                vscode.postMessage({
+                    type: 'openBoard',
+                    boardId: boardId
+                });
+            } else {
+                // Fallback: open in browser
+                window.open(`${API_BASE_URL}?board=${boardId}`, '_blank');
+            }
+        }
+        
+        // Create board function
+        function createBoard() {
+            const name = prompt('Board name:');
+            if (name) {
+                const goal = prompt('Board goal (optional):') || '';
+                console.log(`🆕 Creating board: ${name}`);
+                
+                // For now, just reload - could implement actual creation
+                alert(`Board "${name}" creation would be implemented here.\\n\\nFor now, please use the browser interface at ${API_BASE_URL} to create boards.`);
+            }
+        }
+        
+        // Utility function
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM loaded, initializing...');
+            loadBoards();
+        });
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            console.log('🔄 Auto-refreshing boards...');
+            loadBoards();
+        }, 30000);
+        
+        console.log('✅ Simple Kanban interface initialized');
+    </script>
+</body>
+</html>

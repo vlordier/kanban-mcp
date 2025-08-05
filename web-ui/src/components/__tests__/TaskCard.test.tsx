@@ -20,8 +20,8 @@ describe('TaskCard', () => {
     id: 'task-1',
     title: 'Test Task',
     position: 1,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
   };
 
   const baseColumn: ColumnWithTasks = {
@@ -99,7 +99,7 @@ describe('TaskCard', () => {
       renderTaskCard();
       const title = screen.getByRole('heading', { level: 4 });
       expect(title).toHaveTextContent('Test Task');
-      expect(title).toHaveClass('text-sm', 'font-semibold');
+      expect(title).toHaveClass('font-medium', 'text-gray-900', 'leading-tight', 'flex-1', 'pr-1');
     });
 
     it('displays formatted update date with correct locale formatting', () => {
@@ -140,13 +140,13 @@ describe('TaskCard', () => {
       };
       renderTaskCard(longTitleTask);
       const titleElement = screen.getByRole('heading', { level: 4 });
-      expect(titleElement).toHaveClass('leading-tight', 'flex-1', 'pr-2');
+      expect(titleElement).toHaveClass('leading-tight', 'flex-1', 'pr-1');
     });
 
     it('handles invalid date strings gracefully', () => {
       const invalidDateTask: TaskSummary = {
         ...baseTask,
-        updatedAt: 'invalid-date-string',
+        updated_at: 'invalid-date-string',
       };
       renderTaskCard(invalidDateTask);
       // Should not crash and should display "Invalid Date"
@@ -158,8 +158,8 @@ describe('TaskCard', () => {
         id: 'minimal-task',
         title: 'Minimal Task',
         position: 1,
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
       } as TaskSummary;
 
       expect(() => renderTaskCard(minimalTask)).not.toThrow();
@@ -181,7 +181,7 @@ describe('TaskCard', () => {
     it('shows stale badge for tasks exactly 8 days old', () => {
       const exactlyStaleTask: TaskSummary = {
         ...baseTask,
-        updatedAt: new Date(MOCK_CURRENT_TIME - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(MOCK_CURRENT_TIME - 8 * 24 * 60 * 60 * 1000).toISOString(),
       };
       renderTaskCard(exactlyStaleTask);
       expect(screen.getByText('Stale')).toBeInTheDocument();
@@ -190,7 +190,7 @@ describe('TaskCard', () => {
     it('does not show stale badge for tasks exactly 7 days old', () => {
       const exactlySevenDaysTask: TaskSummary = {
         ...baseTask,
-        updatedAt: new Date(MOCK_CURRENT_TIME - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(MOCK_CURRENT_TIME - 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
       renderTaskCard(exactlySevenDaysTask);
       expect(screen.queryByText('Stale')).not.toBeInTheDocument();
@@ -199,7 +199,7 @@ describe('TaskCard', () => {
     it('shows stale badge for very old tasks', () => {
       const veryOldTask: TaskSummary = {
         ...baseTask,
-        updatedAt: '2020-01-01T00:00:00Z',
+        updated_at: '2020-01-01T00:00:00Z',
       };
       renderTaskCard(veryOldTask);
       const staleBadge = screen.getByText('Stale');
@@ -210,7 +210,7 @@ describe('TaskCard', () => {
     it('does not show stale badge for future dates', () => {
       const futureTask: TaskSummary = {
         ...baseTask,
-        updatedAt: new Date(MOCK_CURRENT_TIME + 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(MOCK_CURRENT_TIME + 24 * 60 * 60 * 1000).toISOString(),
       };
       renderTaskCard(futureTask);
       expect(screen.queryByText('Stale')).not.toBeInTheDocument();
@@ -219,7 +219,7 @@ describe('TaskCard', () => {
     it('applies stale border styling correctly', () => {
       const staleTask: TaskSummary = {
         ...baseTask,
-        updatedAt: new Date(MOCK_CURRENT_TIME - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date(MOCK_CURRENT_TIME - 10 * 24 * 60 * 60 * 1000).toISOString(),
       };
       const { container } = renderTaskCard(staleTask);
       const taskCard = container.querySelector('[class*="border-r-2 border-r-red-300"]');
@@ -235,9 +235,9 @@ describe('TaskCard', () => {
       expect(columnBadge).toHaveClass(
         'inline-flex',
         'items-center',
-        'px-2',
-        'py-1',
-        'rounded-md',
+        'px-1',
+        'py-0.5',
+        'rounded',
         'bg-gray-100',
         'text-gray-600',
         'font-medium'
@@ -275,12 +275,12 @@ describe('TaskCard', () => {
     it('shows update reason indicator with correct attributes', () => {
       const taskWithReason: TaskSummary = {
         ...baseTask,
-        updateReason: 'Task was updated due to requirements change',
+        update_reason: 'Task was updated due to requirements change',
       };
       renderTaskCard(taskWithReason);
       const indicator = screen.getByTitle('Has update reason');
       expect(indicator).toBeInTheDocument();
-      expect(indicator).toHaveClass('w-2', 'h-2', 'bg-blue-400', 'rounded-full');
+      expect(indicator).toHaveClass('w-1', 'h-1', 'bg-blue-400', 'rounded-full');
     });
 
     it('does not show indicator for undefined update reason', () => {
@@ -291,7 +291,7 @@ describe('TaskCard', () => {
     it('does not show indicator for empty update reason', () => {
       const taskWithEmptyReason: TaskSummary = {
         ...baseTask,
-        updateReason: '',
+        update_reason: '',
       };
       renderTaskCard(taskWithEmptyReason);
       expect(screen.queryByTitle('Has update reason')).not.toBeInTheDocument();
@@ -300,7 +300,7 @@ describe('TaskCard', () => {
     it('shows indicator for whitespace-only update reason', () => {
       const taskWithWhitespaceReason: TaskSummary = {
         ...baseTask,
-        updateReason: '   ',
+        update_reason: '   ',
       };
       renderTaskCard(taskWithWhitespaceReason);
       expect(screen.getByTitle('Has update reason')).toBeInTheDocument();
@@ -456,7 +456,7 @@ describe('TaskCard', () => {
 
     it('applies moving animation when isMoving prop is true', () => {
       const { container } = renderTaskCard(baseTask, baseColumn, true);
-      const taskCard = container.querySelector('[class*="ring-2 ring-indigo-500 animate-pulse"]');
+      const taskCard = container.querySelector('[class*="ring-1 ring-blue-500 animate-pulse"]');
       expect(taskCard).toBeInTheDocument();
     });
 
@@ -523,10 +523,10 @@ describe('TaskCard', () => {
 
     it('maintains proper aspect ratio and spacing', () => {
       const { container } = renderTaskCard();
-      const taskCard = container.querySelector('[class*="p-4"]');
+      const taskCard = container.querySelector('[class*="p-1.5"]');
       expect(taskCard).toBeInTheDocument();
 
-      const contentArea = container.querySelector('[class*="mb-2"]');
+      const contentArea = container.querySelector('[class*="mb-0.5"]');
       expect(contentArea).toBeInTheDocument();
     });
   });
@@ -542,13 +542,13 @@ describe('TaskCard', () => {
 
       // Header section with title and stale badge
       const headerSection = mainContainer.querySelector(
-        '[class*="flex items-start justify-between mb-2"]'
+        '[class*="flex items-start justify-between mb-0.5"]'
       );
       expect(headerSection).toBeInTheDocument();
 
       // Footer section with column badge and date
       const footerSection = mainContainer.querySelector(
-        '[class*="flex items-center justify-between text-xs"]'
+        '[class*="flex items-center justify-between text-gray-500"]'
       );
       expect(footerSection).toBeInTheDocument();
     });
@@ -557,16 +557,16 @@ describe('TaskCard', () => {
       const { container } = renderTaskCard();
 
       // Check for proper spacing classes
-      expect(container.querySelector('[class*="mb-2"]')).toBeInTheDocument(); // Header spacing
-      expect(container.querySelector('[class*="space-x-2"]')).toBeInTheDocument(); // Horizontal spacing
-      expect(container.querySelector('[class*="pr-2"]')).toBeInTheDocument(); // Title padding
+      expect(container.querySelector('[class*="mb-0.5"]')).toBeInTheDocument(); // Header spacing
+      expect(container.querySelector('[class*="space-x-1"]')).toBeInTheDocument(); // Horizontal spacing
+      expect(container.querySelector('[class*="pr-1"]')).toBeInTheDocument(); // Title padding
     });
 
     it('handles multiple badges and indicators correctly', () => {
       const complexTask: TaskSummary = {
         ...baseTask,
-        updatedAt: new Date(MOCK_CURRENT_TIME - 10 * 24 * 60 * 60 * 1000).toISOString(), // Stale
-        updateReason: 'Has update reason',
+        updated_at: new Date(MOCK_CURRENT_TIME - 10 * 24 * 60 * 60 * 1000).toISOString(), // Stale
+        update_reason: 'Has update reason',
       };
 
       const { container } = renderTaskCard(complexTask);

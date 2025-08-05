@@ -458,7 +458,7 @@ test.describe('Complete User Workflows', () => {
     ## Code Block
     \`\`\`javascript
     function test() {
-      return "Hello < > & ' \" World!";
+      return "Hello < > & ' " + '"' + " World!";
     }
     \`\`\`
 

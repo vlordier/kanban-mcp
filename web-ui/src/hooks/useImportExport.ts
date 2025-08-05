@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { exportDatabase, importDatabase } from '../services/api';
+import { exportDatabase, importDatabase, exportToFileSystem } from '../services/api';
 import { useApiError } from './useApiError';
 import { useNotifications } from '../components/NotificationContainer';
 import { Board, Column, Task } from '../types';
@@ -51,6 +51,27 @@ export function useImportExport() {
       notifications.success(response.message || 'Database imported successfully!');
     },
     onError: error => handleApiError(error, 'Failed to import database'),
+  });
+
+  const fileSystemExportMutation = useMutation({
+    mutationFn: (options: { includeMetadata?: boolean; separateFiles?: boolean }) => 
+      exportToFileSystem(options),
+    onSuccess: (response) => {
+      if (response.success) {
+        const { stats, files } = response;
+        const fileCount = files?.length || 0;
+        const statsText = stats ? 
+          `${stats.boards} boards, ${stats.columns} columns, ${stats.tasks} tasks` : 
+          'your data';
+        
+        notifications.success(
+          `Successfully exported ${statsText} to ${fileCount} files at ${response.exportPath}`
+        );
+      } else {
+        notifications.error(response.message || 'Export failed');
+      }
+    },
+    onError: error => handleApiError(error, 'Failed to export to file system'),
   });
 
   const handleFileImport = async (
@@ -142,9 +163,11 @@ export function useImportExport() {
 
   return {
     exportDatabase: exportMutation.mutate,
+    exportToFileSystem: fileSystemExportMutation.mutate,
     importDatabase: importMutation.mutate,
     handleFileImport,
     isExporting: exportMutation.isPending,
+    isExportingToFileSystem: fileSystemExportMutation.isPending,
     isImporting: importMutation.isPending,
   };
 }

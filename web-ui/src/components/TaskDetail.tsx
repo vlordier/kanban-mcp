@@ -43,18 +43,22 @@ export default function TaskDetail({
     queryKey: ['task', taskId],
     queryFn: () => (taskId ? getTaskById(taskId) : null),
     enabled: !!taskId,
+    staleTime: 0, // No caching - always fetch fresh data
+    gcTime: 0, // Don't keep data in cache
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: true, // Always refetch on mount
   });
 
   // Set edit content when task data is loaded
   useEffect(() => {
     if (task) {
-      setEditContent(task.content);
+      setEditContent(task.content || '');
     }
   }, [task]);
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ taskId, content }: { taskId: string; content: string }) =>
-      updateTask(taskId, content),
+    mutationFn: ({ taskId, updates }: { taskId: string; updates: { content?: string } }) =>
+      updateTask(taskId, updates),
     onSuccess: () => {
       // Invalidate and refetch the task query to update the UI
       queryClient.invalidateQueries({ queryKey: ['task', taskId] as const });
@@ -84,13 +88,13 @@ export default function TaskDetail({
 
   const handleSaveClick = () => {
     if (taskId) {
-      updateTaskMutation.mutate({ taskId, content: editContent });
+      updateTaskMutation.mutate({ taskId, updates: { content: editContent } });
     }
   };
 
   const handleCancelClick = () => {
     if (task) {
-      setEditContent(task.content);
+      setEditContent(task.content || '');
     }
     setIsEditing(false);
   };
@@ -176,6 +180,7 @@ export default function TaskDetail({
                         type="button"
                         onClick={isEditing ? handleCancelClick : onClose}
                         className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        autoFocus
                       >
                         <span className="absolute -inset-2.5" />
                         <span className="sr-only">Close panel</span>
@@ -207,6 +212,7 @@ export default function TaskDetail({
                           <textarea
                             value={editContent}
                             onChange={e => setEditContent(e.target.value)}
+                            placeholder="Enter task description..."
                             className="w-full h-64 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                           />
                           <div className="flex justify-end space-x-2">
@@ -255,21 +261,15 @@ export default function TaskDetail({
                           <div className="flex justify-between py-3 text-sm">
                             <dt className="text-gray-500">Created</dt>
                             <dd className="text-gray-900">
-                              {new Date(task.created_at).toLocaleString()}
+                              {task.created_at ? new Date(task.created_at).toLocaleString() : 'Not available'}
                             </dd>
                           </div>
                           <div className="flex justify-between py-3 text-sm">
                             <dt className="text-gray-500">Updated</dt>
                             <dd className="text-gray-900">
-                              {new Date(task.updated_at).toLocaleString()}
+                              {task.updated_at ? new Date(task.updated_at).toLocaleString() : 'Not available'}
                             </dd>
                           </div>
-                          {task.update_reason && (
-                            <div className="flex flex-col justify-between py-3 text-sm">
-                              <dt className="text-gray-500">Update Reason</dt>
-                              <dd className="text-gray-900">{task.update_reason}</dd>
-                            </div>
-                          )}
                         </dl>
                       </div>
                     </div>

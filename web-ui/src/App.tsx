@@ -50,24 +50,26 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white vscode-compact vscode-webview">
       <NotificationContainer />
-      <header className="bg-gray-50 border-gray-200 shadow">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <header className="bg-gray-50 border-b border-gray-200" style={{ borderBottomWidth: '1px' }}>
+        <div className="px-2 py-1">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">MCP Kanban</h1>
-            <div className="hidden sm:flex items-center space-x-4 text-xs text-gray-500">
+            <h1 className="text-xs font-medium text-gray-900">MCP Kanban</h1>
+            <div className="hidden sm:flex items-center space-x-2 text-xs text-gray-500">
               <span>⌘K Search</span>
               <span>ESC Clear</span>
             </div>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="px-2 py-1">
         <Routes>
           <Route path="/" element={<Navigate to="/boards" replace />} />
           <Route path="/boards" element={<BoardList />} />
           <Route path="/boards/:boardId" element={<BoardDetail />} />
+          {/* Catch-all route for webview context */}
+          <Route path="*" element={<Navigate to="/boards" replace />} />
         </Routes>
       </main>
     </div>

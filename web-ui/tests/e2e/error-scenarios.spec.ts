@@ -224,7 +224,7 @@ emoji_list = ["😀", "😃", "😄", "😁"]
 - Symbols: © ® ™ ℠ ¢ £ ¥ € § ¶ † ‡ • ‰ ‱
 
 ## 🎯 Stress Test Characters
-Zero-width characters: ​‌‍⁣⁢⁡⁠
+Zero-width characters: [invisible characters]
 Combining characters: a⃗ e⃗ i⃗ o⃗ u⃗
 RTL text: مرحبا بالعالم (Arabic)
 Complex emoji: 👨‍👩‍👧‍👦 👩‍💻 🧑‍🚀 🏳️‍🌈

@@ -8,7 +8,7 @@ test.describe('Live Updates and Change Detection', () => {
 
   test('detects board creation changes', async ({ page }) => {
     // Monitor for boardsUpdated events
-    let eventsFired = 0;
+    const eventsFired = 0;
     await page.addInitScript(() => {
       window.addEventListener('boardsUpdated', (event: any) => {
         console.log('boardsUpdated event fired:', event.detail);

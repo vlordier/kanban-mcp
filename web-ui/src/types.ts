@@ -20,9 +20,9 @@ export interface TaskSummary {
   id: string;
   title: string;
   position: number;
-  createdAt: string;
-  updatedAt: string;
-  updateReason?: string;
+  created_at: string;
+  updated_at: string;
+  update_reason?: string;
 }
 
 export interface ColumnWithTasks {

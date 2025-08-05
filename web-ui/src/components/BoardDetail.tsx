@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { getBoardWithColumnsAndTasks, moveTask, createTask } from '../services/api';
@@ -7,6 +7,7 @@ import TaskDetail from './TaskDetail';
 import { DragAndDropProvider } from '../contexts/DragAndDropContext';
 import { useNotifications } from './NotificationContainer';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { BoardDetailSkeleton } from './LoadingSkeleton';
 
 export default function BoardDetail() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -15,14 +16,145 @@ export default function BoardDetail() {
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskContent, setNewTaskContent] = useState('');
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const queryClient = useQueryClient();
   const notifications = useNotifications();
+  
+  // Refs for column scrolling
+  const columnRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Function to scroll to a specific column
+  const scrollToColumn = useCallback((columnId: string) => {
+    const columnElement = columnRefs.current.get(columnId);
+    if (columnElement) {
+      columnElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'nearest', 
+        inline: 'center' 
+      });
+      // Add a visual highlight effect
+      columnElement.style.boxShadow = '0 0 10px 2px rgba(59, 130, 246, 0.5)';
+      setTimeout(() => {
+        columnElement.style.boxShadow = '';
+      }, 2000);
+    }
+  }, []);
+
+  // Handle VSCode messages for column navigation
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).vscode) {
+      const handleMessage = (event: MessageEvent) => {
+        const message = event.data;
+        if (message.type === 'scrollToColumn' && message.columnId) {
+          scrollToColumn(message.columnId);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
+    return undefined;
+  }, [scrollToColumn]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['board', boardId],
     queryFn: () => (boardId ? getBoardWithColumnsAndTasks(boardId) : null),
     enabled: !!boardId,
+    staleTime: 0, // No caching - always fetch fresh data
+    gcTime: 0, // Don't keep data in cache
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnMount: true, // Always refetch on mount
   });
+
+  // Handle initial column scroll from VSCode
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).initialColumnId && data?.columns) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        scrollToColumn((window as any).initialColumnId);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [data?.columns, scrollToColumn]);
+
+  // Keyboard shortcuts handler
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in input fields
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Cmd/Ctrl + N: Create new task in first column
+      if ((event.metaKey || event.ctrlKey) && event.key === 'n') {
+        event.preventDefault();
+        if (data?.columns && data.columns.length > 0) {
+          setSelectedColumnId(data.columns[0]!.id);
+          setIsCreateTaskDialogOpen(true);
+        }
+      }
+
+      // Cmd/Ctrl + Shift + N: Create new task in landing column
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'N') {
+        event.preventDefault();
+        const landingColumn = data?.columns?.find(col => col.isLanding);
+        if (landingColumn) {
+          setSelectedColumnId(landingColumn.id);
+          setIsCreateTaskDialogOpen(true);
+        } else if (data?.columns && data.columns.length > 0) {
+          setSelectedColumnId(data.columns[0]!.id);
+          setIsCreateTaskDialogOpen(true);
+        }
+      }
+
+      // Escape: Close task detail or dialogs
+      if (event.key === 'Escape') {
+        if (selectedTaskId) {
+          setSelectedTaskId(null);
+        } else if (isCreateTaskDialogOpen) {
+          setIsCreateTaskDialogOpen(false);
+        }
+      }
+
+      // ?: Show keyboard shortcuts help
+      if (event.key === '?' && !event.shiftKey) {
+        event.preventDefault();
+        setShowKeyboardShortcuts(true);
+      }
+
+      // Arrow keys for column navigation
+      if (event.key === 'ArrowLeft' && data?.columns) {
+        event.preventDefault();
+        const currentIndex = data.columns.findIndex(col => 
+          columnRefs.current.get(col.id)?.style.boxShadow
+        );
+        const prevIndex = currentIndex > 0 ? currentIndex - 1 : data.columns.length - 1;
+        scrollToColumn(data.columns[prevIndex]!.id);
+      }
+
+      if (event.key === 'ArrowRight' && data?.columns) {
+        event.preventDefault();
+        const currentIndex = data.columns.findIndex(col => 
+          columnRefs.current.get(col.id)?.style.boxShadow
+        );
+        const nextIndex = currentIndex < data.columns.length - 1 ? currentIndex + 1 : 0;
+        scrollToColumn(data.columns[nextIndex]!.id);
+      }
+
+      // Number keys (1-9) for quick column access
+      if (event.key >= '1' && event.key <= '9' && data?.columns) {
+        event.preventDefault();
+        const columnIndex = parseInt(event.key) - 1;
+        if (columnIndex < data.columns.length) {
+          scrollToColumn(data.columns[columnIndex]!.id);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [data?.columns, selectedTaskId, isCreateTaskDialogOpen, scrollToColumn]);
 
   const createTaskMutation = useMutation({
     mutationFn: ({
@@ -110,7 +242,7 @@ export default function BoardDetail() {
 
     const { column, taskIndex } = currentColumnAndTaskIndex;
     if (taskIndex > 0) {
-      setSelectedTaskId(column.tasks[taskIndex - 1].id);
+      setSelectedTaskId(column.tasks[taskIndex - 1]!.id);
     }
   }, [currentColumnAndTaskIndex]);
 
@@ -120,7 +252,7 @@ export default function BoardDetail() {
 
     const { column, taskIndex } = currentColumnAndTaskIndex;
     if (taskIndex < column.tasks.length - 1) {
-      setSelectedTaskId(column.tasks[taskIndex + 1].id);
+      setSelectedTaskId(column.tasks[taskIndex + 1]!.id);
     }
   }, [currentColumnAndTaskIndex]);
 
@@ -136,11 +268,7 @@ export default function BoardDetail() {
   }, [currentColumnAndTaskIndex]);
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
+    return <BoardDetailSkeleton />;
   }
 
   // Handle moving a task between columns
@@ -214,39 +342,32 @@ export default function BoardDetail() {
 
   return (
     <div>
-      {/* Breadcrumb navigation */}
-      <div className="mb-4">
-        <nav className="flex items-center space-x-2 text-sm">
-          <Link
-            to="/boards"
-            className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200"
-          >
-            Boards
-          </Link>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-700 font-medium">{board.name}</span>
-        </nav>
-      </div>
-
-      <div className="mb-8">
-        <div className="flex justify-between items-start">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{board.name}</h1>
-            <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">{board.goal}</p>
-            <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
-              <span>Created {new Date(board.created_at).toLocaleDateString()}</span>
-              <span>•</span>
-              <span>{columns.reduce((total, col) => total + col.tasks.length, 0)} tasks total</span>
-              <span>•</span>
-              <span>{columns.length} columns</span>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 ml-6">
+      {/* Compact but readable breadcrumb and header */}
+      <div className="mb-1">
+        <div className="flex justify-between items-center">
+          <nav className="flex items-center space-x-1" style={{ fontSize: '10px' }}>
             <Link
               to="/boards"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+              className="text-blue-600 hover:text-blue-800 font-medium"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              Boards
+            </Link>
+            <span className="text-gray-400">/</span>
+            <h1 className="text-gray-900 font-medium truncate max-w-sm">{board.name}</h1>
+          </nav>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowKeyboardShortcuts(true)}
+              className="inline-flex items-center px-1.5 py-0.5 border border-gray-300 rounded text-xs font-medium text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors duration-200"
+              title="Keyboard shortcuts (?)"
+            >
+              <span className="text-xs">⌨️</span>
+            </button>
+            <Link
+              to="/boards"
+              className="inline-flex items-center px-1.5 py-0.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <svg className="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -254,17 +375,35 @@ export default function BoardDetail() {
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Back to Boards
+              Back
             </Link>
+          </div>
+        </div>
+        <div className="flex items-center justify-between mt-0.5">
+          <p className="text-gray-600" style={{ fontSize: '10px' }}>{board.goal}</p>
+          <div className="flex items-center space-x-1 text-gray-500" style={{ fontSize: '9px' }}>
+            <span>{columns.reduce((total, col) => total + col.tasks.length, 0)} tasks</span>
+            <span>•</span>
+            <span>{columns.length} cols</span>
           </div>
         </div>
       </div>
 
-      <div className="overflow-visible pb-6">
+      <div className="overflow-visible pb-1">
         <DragAndDropProvider onMoveTask={handleMoveTask}>
-          <div className="flex gap-4 min-w-max">
+          <div className="flex gap-1.5 min-w-max">
             {columns.map(column => (
-              <div key={column.id} className="w-[280px]">
+              <div 
+                key={column.id} 
+                className="w-[200px]"
+                ref={(el) => {
+                  if (el) {
+                    columnRefs.current.set(column.id, el);
+                  } else {
+                    columnRefs.current.delete(column.id);
+                  }
+                }}
+              >
                 <Column
                   column={column}
                   onTaskClick={handleTaskClick}
@@ -275,6 +414,75 @@ export default function BoardDetail() {
           </div>
         </DragAndDropProvider>
       </div>
+
+      {/* Keyboard Shortcuts Help Dialog */}
+      <Dialog
+        open={showKeyboardShortcuts}
+        onClose={() => setShowKeyboardShortcuts(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="mx-auto max-w-lg w-full rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <span className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center mr-3">
+                ⌨️
+              </span>
+              Keyboard Shortcuts
+            </DialogTitle>
+            
+            <div className="space-y-4 text-sm">
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Task Management</h4>
+                <div className="space-y-2 text-gray-600 dark:text-gray-400">
+                  <div className="flex justify-between items-center">
+                    <span>Create new task</span>
+                    <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">⌘ N</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Create task in landing column</span>
+                    <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">⌘ ⇧ N</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Close task/dialog</span>
+                    <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">Esc</kbd>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Navigation</h4>
+                <div className="space-y-2 text-gray-600 dark:text-gray-400">
+                  <div className="flex justify-between items-center">
+                    <span>Navigate left/right</span>
+                    <div className="space-x-1">
+                      <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">←</kbd>
+                      <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">→</kbd>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Jump to column (1-9)</span>
+                    <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">1-9</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Show this help</span>
+                    <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-600 rounded text-xs font-mono">?</kbd>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowKeyboardShortcuts(false)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors duration-200"
+              >
+                Got it!
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
 
       <TaskDetail
         taskId={selectedTaskId}

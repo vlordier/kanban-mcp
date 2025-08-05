@@ -4,8 +4,9 @@ export interface MockBoard {
   id: string;
   name: string;
   goal: string;
-  createdAt: string;
-  updatedAt: string;
+  landing_column_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MockColumn {
@@ -22,8 +23,9 @@ export interface MockTask {
   title: string;
   content?: string;
   position: number;
-  createdAt: string;
-  updatedAt: string;
+  column_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export class MockApiServer {
@@ -43,8 +45,9 @@ export class MockApiServer {
       id: 'board-1',
       name: 'Test Board',
       goal: 'Default test board',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      landing_column_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     this.boards.set('board-1', defaultBoard);
 
@@ -83,8 +86,8 @@ export class MockApiServer {
   }
 
   async setupRoutes(page: Page) {
-    // Mock GET /api/v1/boards
-    await page.route('/api/v1/boards', async route => {
+    // Mock GET /api/boards
+    await page.route('/api/boards', async route => {
       if (route.request().method() === 'GET') {
         const boards = Array.from(this.boards.values());
         await route.fulfill({
@@ -98,8 +101,9 @@ export class MockApiServer {
           id: this.generateId(),
           name: body.name,
           goal: body.goal,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          landing_column_id: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
         this.boards.set(newBoard.id, newBoard);
 
@@ -140,8 +144,8 @@ export class MockApiServer {
       }
     });
 
-    // Mock GET /api/v1/boards/:id
-    await page.route('/api/v1/boards/*', async route => {
+    // Mock GET /api/boards/:id
+    await page.route('/api/boards/*', async route => {
       if (route.request().method() === 'GET') {
         const url = route.request().url();
         const boardId = url.split('/').pop();
@@ -173,7 +177,7 @@ export class MockApiServer {
             ...board,
             name: body.name || board.name,
             goal: body.goal || board.goal,
-            updatedAt: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           };
           this.boards.set(boardId!, updatedBoard);
 
@@ -213,7 +217,7 @@ export class MockApiServer {
     });
 
     // Mock task operations
-    await page.route('/api/v1/tasks/*', async route => {
+    await page.route('/api/tasks/*', async route => {
       if (route.request().method() === 'GET') {
         const url = route.request().url();
         const taskId = url.split('/').pop();
@@ -236,7 +240,7 @@ export class MockApiServer {
     });
 
     // Mock task creation and movement
-    await page.route('/api/v1/columns/*/tasks', async route => {
+    await page.route('/api/columns/*/tasks', async route => {
       if (route.request().method() === 'POST') {
         const url = route.request().url();
         const columnId = url.split('/')[4]; // Extract column ID from URL
@@ -247,8 +251,9 @@ export class MockApiServer {
           title: body.title,
           content: body.content,
           position: body.position || 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          column_id: columnId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
 
         this.tasks.set(newTask.id, newTask);
@@ -271,7 +276,7 @@ export class MockApiServer {
     });
 
     // Mock task movement
-    await page.route('/api/v1/tasks/*/move', async route => {
+    await page.route('/api/tasks/*/move', async route => {
       if (route.request().method() === 'PUT') {
         const url = route.request().url();
         const taskId = url.split('/')[4];
@@ -293,8 +298,9 @@ export class MockApiServer {
       id: this.generateId(),
       name: board.name || 'Test Board',
       goal: board.goal || 'Test Goal',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      landing_column_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       ...board,
     };
     this.boards.set(newBoard.id, newBoard);

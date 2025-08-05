@@ -42,6 +42,16 @@ class KanbanTreeDataProvider {
             // Root level - show boards
             try {
                 const boards = await this.mcpClient.getBoards();
+                if (boards.length === 0) {
+                    // Return placeholder item when no boards exist
+                    const placeholderItem = new KanbanTreeItem('No boards found', 'no-boards', 'board', vscode.TreeItemCollapsibleState.None, {
+                        command: 'kanban-mcp.createBoard',
+                        title: 'Create First Board',
+                        arguments: []
+                    });
+                    placeholderItem.contextValue = 'placeholder-no-boards';
+                    return [placeholderItem];
+                }
                 return boards.map(board => new KanbanTreeItem(board.name, board.id, 'board', vscode.TreeItemCollapsibleState.Collapsed, {
                     command: 'kanban-mcp.openBoard',
                     title: 'Open Board',
@@ -50,7 +60,14 @@ class KanbanTreeDataProvider {
             }
             catch (error) {
                 vscode.window.showErrorMessage(`Failed to load boards: ${error}`);
-                return [];
+                // Return placeholder item for error state
+                const errorItem = new KanbanTreeItem('Error loading boards', 'error-boards', 'board', vscode.TreeItemCollapsibleState.None, {
+                    command: 'kanban-mcp.refreshBoards',
+                    title: 'Retry Loading Boards',
+                    arguments: []
+                });
+                errorItem.contextValue = 'placeholder-error';
+                return [errorItem];
             }
         }
         else if (element.type === 'board') {
@@ -58,7 +75,11 @@ class KanbanTreeDataProvider {
             try {
                 const board = await this.mcpClient.getBoard(element.id);
                 if (board.columns) {
-                    return board.columns.map(column => new KanbanTreeItem(`${column.name} (${column.tasks?.length || 0})`, column.id, 'column', vscode.TreeItemCollapsibleState.Collapsed));
+                    return board.columns.map(column => new KanbanTreeItem(`${column.name} (${column.tasks?.length || 0})`, column.id, 'column', vscode.TreeItemCollapsibleState.Collapsed, {
+                        command: 'kanban-mcp.openBoardToColumn',
+                        title: 'Open Board at Column',
+                        arguments: [element.id, column.id]
+                    }));
                 }
                 return [];
             }
@@ -102,22 +123,82 @@ class KanbanTreeItem extends vscode.TreeItem {
         this.id = id;
         this.description = description;
         this.contextValue = type;
-        // Set icons based on type
+        // Set status-aware icons based on type
         switch (type) {
             case 'board':
-                this.iconPath = new vscode.ThemeIcon('project');
+                // Color-code boards based on overall completion
+                const boardCompletion = this.calculateBoardCompletion();
+                if (boardCompletion >= 0.8) {
+                    this.iconPath = new vscode.ThemeIcon('project', new vscode.ThemeColor('charts.green'));
+                }
+                else if (boardCompletion >= 0.4) {
+                    this.iconPath = new vscode.ThemeIcon('project', new vscode.ThemeColor('charts.yellow'));
+                }
+                else {
+                    this.iconPath = new vscode.ThemeIcon('project', new vscode.ThemeColor('charts.blue'));
+                }
                 this.contextValue = 'board';
                 break;
             case 'column':
-                this.iconPath = new vscode.ThemeIcon('list-unordered');
+                // Color-code columns based on their purpose and capacity
+                const columnColor = this.getColumnStatusColor();
+                this.iconPath = new vscode.ThemeIcon('list-unordered', columnColor);
                 this.contextValue = 'column';
                 break;
             case 'task':
-                this.iconPath = new vscode.ThemeIcon('circle-outline');
+                // Task status-aware icons
+                const taskStatus = this.getTaskStatusIcon();
+                this.iconPath = new vscode.ThemeIcon(taskStatus.icon, taskStatus.color);
                 this.contextValue = 'task';
                 this.tooltip = description;
                 break;
         }
+    }
+    calculateBoardCompletion() {
+        // For boards, we need additional data - simplified for now
+        return 0.5; // Default middle completion
+    }
+    getColumnStatusColor() {
+        const columnName = this.label.toLowerCase();
+        // Determine column type and capacity status
+        if (columnName.includes('todo') || columnName.includes('backlog')) {
+            return new vscode.ThemeColor('charts.gray');
+        }
+        else if (columnName.includes('progress') || columnName.includes('doing')) {
+            // Check if column appears overloaded
+            const taskCount = this.extractTaskCount();
+            return taskCount > 5
+                ? new vscode.ThemeColor('charts.red')
+                : new vscode.ThemeColor('charts.yellow');
+        }
+        else if (columnName.includes('review') || columnName.includes('testing')) {
+            return new vscode.ThemeColor('charts.orange');
+        }
+        else if (columnName.includes('done') || columnName.includes('complete')) {
+            return new vscode.ThemeColor('charts.green');
+        }
+        return new vscode.ThemeColor('charts.blue');
+    }
+    getTaskStatusIcon() {
+        const description = this.description?.toLowerCase() || '';
+        // Determine task urgency/status from content clues
+        if (description.includes('urgent') || description.includes('critical')) {
+            return { icon: 'error', color: new vscode.ThemeColor('errorForeground') };
+        }
+        else if (description.includes('blocked') || description.includes('waiting')) {
+            return { icon: 'warning', color: new vscode.ThemeColor('problemsWarningIcon.foreground') };
+        }
+        else if (description.includes('review') || description.includes('testing')) {
+            return { icon: 'eye', color: new vscode.ThemeColor('charts.orange') };
+        }
+        else if (description.includes('complete') || description.includes('done')) {
+            return { icon: 'check', color: new vscode.ThemeColor('charts.green') };
+        }
+        return { icon: 'circle-outline', color: new vscode.ThemeColor('charts.blue') };
+    }
+    extractTaskCount() {
+        const match = this.label.match(/\((\d+)\)/);
+        return match ? parseInt(match[1], 10) : 0;
     }
 }
 exports.KanbanTreeItem = KanbanTreeItem;

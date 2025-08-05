@@ -56,7 +56,7 @@ export default function TaskCard({ task, column, isMoving = false }: TaskCardPro
   };
 
   // Calculate days since last update for urgency indication
-  const updatedAtTime = new Date(task.updatedAt).getTime();
+  const updatedAtTime = task.updated_at ? new Date(task.updated_at).getTime() : Date.now();
   const currentTime = Date.now();
   const daysSinceUpdate = Math.floor((currentTime - updatedAtTime) / (1000 * 60 * 60 * 24));
   const isStale = !isNaN(updatedAtTime) && currentTime > updatedAtTime && daysSinceUpdate > 7;
@@ -67,31 +67,31 @@ export default function TaskCard({ task, column, isMoving = false }: TaskCardPro
       {...listeners}
       {...attributes}
       style={style}
-      className={`bg-white shadow-sm rounded-lg p-4 cursor-pointer hover:shadow-md transition-all touch-manipulation border-l-4 ${getStatusColor()} ${
-        isMoving ? 'ring-2 ring-indigo-500 animate-pulse' : ''
+      className={`bg-white shadow-sm rounded p-1.5 cursor-pointer hover:shadow-md transition-all touch-manipulation border-l-2 ${getStatusColor()} ${
+        isMoving ? 'ring-1 ring-blue-500 animate-pulse' : ''
       } ${isDragging ? 'opacity-50' : ''} ${isStale ? 'border-r-2 border-r-red-300' : ''}`}
     >
-      <div className="flex items-start justify-between mb-2">
-        <h4 className="text-sm font-semibold text-gray-900 leading-tight flex-1 pr-2">
+      <div className="flex items-start justify-between mb-0.5">
+        <h4 className="font-medium text-gray-900 leading-tight flex-1 pr-1" style={{ fontSize: '10px' }}>
           {task.title}
         </h4>
         {isStale && (
           <div className="flex-shrink-0">
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+            <span className="inline-flex items-center px-1 py-0.5 rounded font-medium bg-red-100 text-red-700" style={{ fontSize: '8px' }}>
               Stale
             </span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-600 font-medium">
+      <div className="flex items-center justify-between text-gray-500" style={{ fontSize: '9px' }}>
+        <span className="inline-flex items-center px-1 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">
           {column.name}
         </span>
-        <div className="flex items-center space-x-2">
-          <span>{new Date(task.updatedAt).toLocaleDateString()}</span>
-          {task.updateReason && (
-            <div className="w-2 h-2 bg-blue-400 rounded-full" title="Has update reason"></div>
+        <div className="flex items-center space-x-1">
+          <span>{task.updated_at ? new Date(task.updated_at).toLocaleDateString() : 'Unknown date'}</span>
+          {task.update_reason && (
+            <div className="w-1 h-1 bg-blue-400 rounded-full" title="Has update reason"></div>
           )}
         </div>
       </div>

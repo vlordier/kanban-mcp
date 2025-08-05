@@ -11,7 +11,7 @@ Embed your React UI into a VSCode extension using a Webview.
 ## 🛠️ Step-by-Step Guide
 
 ### **1. Scaffold a basic VSCode extension**
-
+sea
 1. Install the Yeoman VSCode Extension Generator (if not already):
 
    ```bash

@@ -21,6 +21,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    minify: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@headlessui/react', '@heroicons/react'],
+          dnd: ['@dnd-kit/core', '@dnd-kit/utilities'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
