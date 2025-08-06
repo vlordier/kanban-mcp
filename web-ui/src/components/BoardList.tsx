@@ -1,18 +1,23 @@
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { getAllBoards, deleteBoard, createBoard } from '../services/api';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { PlusIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNotifications } from './NotificationContainer';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useRealTimeUpdates } from '../hooks/useRealTimeUpdates';
+import { useImportExport } from '../hooks/useImportExport';
+import { getAllBoards, createBoard, deleteBoard } from '../services/api';
 import { NotificationSystem } from './NotificationSystem';
 
 export default function BoardList() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [boardToDelete, setBoardToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // Import/Export states
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importData, setImportData] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Board management states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
   const [newBoardGoal, setNewBoardGoal] = useState('');
@@ -22,6 +27,7 @@ export default function BoardList() {
   const [isDark, setIsDark] = useDarkMode();
   const queryClient = useQueryClient();
   const notifications = useNotifications();
+  const { exportDatabase: handleExport, importDatabase: handleImport, handleFileImport, isExporting, isImporting } = useImportExport();
   
   // Enable real-time updates
   useRealTimeUpdates();
@@ -40,35 +46,73 @@ export default function BoardList() {
       setNewBoardGoal('');
       notifications.success('Board created successfully');
     },
-    onError: (error) => {
-      notifications.error('Failed to create board', error instanceof Error ? error.message : 'Unknown error');
+    onError: (error: Error) => {
+      notifications.error('Failed to create board', error.message);
     }
   });
+
+  const deleteBoardMutation = useMutation({
+    mutationFn: deleteBoard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+      setIsDeleteDialogOpen(false);
+      setBoardToDelete(null);
+      notifications.success('Board deleted successfully');
+    },
+    onError: (error: Error) => {
+      notifications.error('Failed to delete board', error.message);
+    }
+  });
+
+  const isDeleting = deleteBoardMutation.isPending;
 
   const handleDeleteClick = (boardId: string, boardName: string) => {
     setBoardToDelete({ id: boardId, name: boardName });
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (!boardToDelete) return;
-    
+    deleteBoardMutation.mutate(boardToDelete.id);
+  };
+
+  // Export/Import event handlers
+  const handleExportClick = () => {
+    handleExport();
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     try {
-      setIsDeleting(true);
-      await deleteBoard(boardToDelete.id);
-      // Invalidate the boards query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['boards'] });
-      notifications.success('Board deleted successfully');
+      const data = await handleFileImport(file);
+      // Store the data to be imported and show confirmation dialog
+      setImportData(data);
+      setIsImportDialogOpen(true);
     } catch (error) {
-      console.error('Error deleting board:', error);
-      notifications.error('Failed to delete board', error instanceof Error ? error.message : 'Unknown error');
+      notifications.error('Failed to import file', error instanceof Error ? error.message : 'Unknown error');
     } finally {
-      setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
-      setBoardToDelete(null);
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
+  const handleConfirmImport = () => {
+    if (!importData) return;
+    
+    handleImport(importData);
+    setIsImportDialogOpen(false);
+    setImportData(null);
+  };
+
+  // Board management functionality
   const handleCreateBoard = () => {
     if (!newBoardName.trim() || !newBoardGoal.trim()) {
       notifications.error('Validation error', 'Board name and goal are required');
@@ -219,6 +263,10 @@ export default function BoardList() {
                   <span className="text-indigo-600">•</span>
                   <span>Write detailed task descriptions with Markdown support</span>
                 </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-indigo-600">•</span>
+                  <span>Export and import your data for backup and sharing</span>
+                </div>
               </div>
             </div>
             <button
@@ -228,6 +276,35 @@ export default function BoardList() {
               <PlusIcon className="h-6 w-6" aria-hidden="true" />
               Create your first board
             </button>
+          </div>
+        </div>
+        
+        {/* Import/Export buttons even when no boards exist */}
+        <div className="mt-8 flex justify-center">
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={handleExportClick}
+              disabled={isExporting}
+              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+            >
+              {isExporting ? 'Exporting...' : 'Export Database'}
+            </button>
+            <button
+              type="button"
+              onClick={handleImportClick}
+              disabled={isImporting}
+              className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:opacity-50"
+            >
+              {isImporting ? 'Importing...' : 'Import Database'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
@@ -268,6 +345,33 @@ export default function BoardList() {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Import/Export buttons */}
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={handleExportClick}
+                  disabled={isExporting}
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+                >
+                  {isExporting ? 'Exporting...' : 'Export Database'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImportClick}
+                  disabled={isImporting}
+                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:opacity-50"
+                >
+                  {isImporting ? 'Importing...' : 'Import Database'}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+              
               {/* Notifications System */}
               <NotificationSystem />
               
@@ -570,6 +674,67 @@ export default function BoardList() {
                   </div>
                 ) : (
                   'Delete'
+                )}
+              </button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
+
+      {/* Import Confirmation Dialog */}
+      <Dialog
+        open={isImportDialogOpen}
+        onClose={() => !isImporting && setIsImportDialogOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-md" aria-hidden="true" />
+        
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="mx-auto max-w-sm rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl p-8 shadow-2xl shadow-orange-500/20 ring-1 ring-white/20 dark:ring-gray-700/50 border border-orange-100/50 dark:border-orange-900/50">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.304 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <DialogTitle className="text-xl font-bold bg-gradient-to-r from-gray-900 to-orange-800 dark:from-white dark:to-orange-400 bg-clip-text text-transparent">
+                Import Database
+              </DialogTitle>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                This will <span className="font-bold text-orange-600 dark:text-orange-400">replace ALL existing data</span> with the imported data.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {importData && (
+                  <>Importing {importData.boards?.length || 0} boards, {importData.columns?.length || 0} columns, and {importData.tasks?.length || 0} tasks.</>
+                )}
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-2xl border-0 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 px-6 py-3 text-sm font-bold text-gray-700 dark:text-gray-200 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                onClick={() => setIsImportDialogOpen(false)}
+                disabled={isImporting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex justify-center rounded-2xl border-0 bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-3 text-sm font-bold text-white hover:from-orange-700 hover:to-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={handleConfirmImport}
+                disabled={isImporting}
+              >
+                {isImporting ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Importing...</span>
+                  </div>
+                ) : (
+                  'Import'
                 )}
               </button>
             </div>

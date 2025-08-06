@@ -450,6 +450,102 @@ mcpServer.tool(
   }
 );
 
+mcpServer.tool(
+  "export-database",
+  "Export the entire kanban database to a JSON format that can be saved to a file.",
+  {},
+  async () => {
+    try {
+      const data = kanbanDB.exportDatabase();
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Database exported successfully. Contains ${data.boards.length} boards, ${data.columns.length} columns, and ${data.tasks.length} tasks.`,
+          },
+          {
+            type: "text",
+            text: JSON.stringify(data, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error exporting database: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
+mcpServer.tool(
+  "import-database",
+  "Import a kanban database from JSON format. This will replace ALL existing data.",
+  {
+    jsonData: z.string(),
+  },
+  async ({ jsonData }) => {
+    try {
+      const data = JSON.parse(jsonData);
+      
+      // Validate the data structure
+      if (!data.boards || !data.columns || !data.tasks) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Error: Invalid database format. Must contain boards, columns, and tasks arrays.",
+            },
+          ],
+          isError: true,
+        };
+      }
+      
+      // Validate file size (JSON string size)
+      const dataSize = jsonData.length;
+      const maxSizeBytes = 10 * 1024 * 1024; // 10MB limit
+      
+      if (dataSize > maxSizeBytes) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: Import data too large. Size (${Math.round(dataSize / 1024 / 1024 * 100) / 100}MB) exceeds maximum allowed size of ${maxSizeBytes / 1024 / 1024}MB`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      kanbanDB.importDatabase(data);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Database imported successfully. Imported ${data.boards.length} boards, ${data.columns.length} columns, and ${data.tasks.length} tasks.`,
+          },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error importing database: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+);
+
 mcpServer.prompt(
   "create-kanban-based-project",
   { description: z.string() },
@@ -524,7 +620,7 @@ process.stdin.on("close", async () => {
 // Handle graceful shutdown
 process.on("SIGINT", async () => {
   console.error("Shutting down servers...");
-  await closeServer;
+  await closeServer();
   process.exit(0);
 });
 

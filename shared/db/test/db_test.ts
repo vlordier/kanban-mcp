@@ -443,4 +443,377 @@ describe("KanbanDB", () => {
       expect(changes).toBe(0);
     });
   });
+
+  describe("exportDatabase", () => {
+    it("should export empty database", () => {
+      const exportData = kanbanDb.exportDatabase();
+      
+      expect(exportData).toBeDefined();
+      expect(exportData.boards).toEqual([]);
+      expect(exportData.columns).toEqual([]);
+      expect(exportData.tasks).toEqual([]);
+    });
+
+    it("should export database with data", () => {
+      // Create test data
+      const { boardId } = kanbanDb.createBoard("Test Board", "Test Goal", [
+        { name: "To Do", position: 0, wipLimit: 5 },
+        { name: "In Progress", position: 1, wipLimit: 3 },
+        { name: "Done", position: 2, wipLimit: 0, isDoneColumn: true },
+      ], 0);
+
+      // Get column IDs
+      const columns = kanbanDb.getColumnsForBoard(boardId);
+      const todoColumnId = columns[0].id;
+      const inProgressColumnId = columns[1].id;
+
+      // Add tasks
+      const task1 = kanbanDb.addTaskToColumn(todoColumnId, "Task 1", "Content 1");
+      const task2 = kanbanDb.addTaskToColumn(inProgressColumnId, "Task 2", "Content 2");
+
+      // Export database
+      const exportData = kanbanDb.exportDatabase();
+
+      // Verify export structure
+      expect(exportData).toBeDefined();
+      expect(exportData.boards).toBeDefined();
+      expect(exportData.columns).toBeDefined();
+      expect(exportData.tasks).toBeDefined();
+
+      // Verify board data
+      expect(exportData.boards.length).toBe(1);
+      expect(exportData.boards[0].id).toBe(boardId);
+      expect(exportData.boards[0].name).toBe("Test Board");
+      expect(exportData.boards[0].goal).toBe("Test Goal");
+
+      // Verify column data
+      expect(exportData.columns.length).toBe(3);
+      const exportedColumns = exportData.columns.sort((a, b) => a.position - b.position);
+      expect(exportedColumns[0].name).toBe("To Do");
+      expect(exportedColumns[1].name).toBe("In Progress");
+      expect(exportedColumns[2].name).toBe("Done");
+      expect(exportedColumns[2].is_done_column).toBe(1);
+
+      // Verify task data
+      expect(exportData.tasks.length).toBe(2);
+      const task1Export = exportData.tasks.find(t => t.title === "Task 1");
+      const task2Export = exportData.tasks.find(t => t.title === "Task 2");
+      expect(task1Export).toBeDefined();
+      expect(task2Export).toBeDefined();
+      expect(task1Export?.content).toBe("Content 1");
+      expect(task2Export?.content).toBe("Content 2");
+    });
+
+    it("should export multiple boards with all relationships", () => {
+      // Create multiple boards
+      const { boardId: board1Id } = kanbanDb.createBoard("Board 1", "Goal 1", [
+        { name: "Column A", position: 0, wipLimit: 2 },
+      ], 0);
+
+      const { boardId: board2Id } = kanbanDb.createBoard("Board 2", "Goal 2", [
+        { name: "Column B", position: 0, wipLimit: 3 },
+        { name: "Column C", position: 1, wipLimit: 0 },
+      ], 0);
+
+      // Add tasks
+      const board1Columns = kanbanDb.getColumnsForBoard(board1Id);
+      const board2Columns = kanbanDb.getColumnsForBoard(board2Id);
+
+      kanbanDb.addTaskToColumn(board1Columns[0].id, "B1 Task 1", "B1 Content 1");
+      kanbanDb.addTaskToColumn(board2Columns[0].id, "B2 Task 1", "B2 Content 1");
+      kanbanDb.addTaskToColumn(board2Columns[1].id, "B2 Task 2", "B2 Content 2");
+
+      // Export
+      const exportData = kanbanDb.exportDatabase();
+
+      // Verify export contains all data
+      expect(exportData.boards.length).toBe(2);
+      expect(exportData.columns.length).toBe(3);
+      expect(exportData.tasks.length).toBe(3);
+
+      // Verify board relationships
+      const board1Tasks = exportData.tasks.filter(task => 
+        exportData.columns.find(col => col.id === task.column_id)?.board_id === board1Id
+      );
+      const board2Tasks = exportData.tasks.filter(task => 
+        exportData.columns.find(col => col.id === task.column_id)?.board_id === board2Id
+      );
+
+      expect(board1Tasks.length).toBe(1);
+      expect(board2Tasks.length).toBe(2);
+    });
+  });
+
+  describe("importDatabase", () => {
+    it("should import empty database", () => {
+      // First add some data to clear
+      kanbanDb.createBoard("Temp Board", "Temp Goal", [
+        { name: "Temp Column", position: 0, wipLimit: 5 },
+      ], 0);
+
+      // Import empty data
+      const emptyData = {
+        boards: [],
+        columns: [],
+        tasks: []
+      };
+
+      kanbanDb.importDatabase(emptyData);
+
+      // Verify database is empty
+      const boards = kanbanDb.getAllBoards();
+      expect(boards.length).toBe(0);
+    });
+
+    it("should import database with data", () => {
+      // Prepare import data
+      const importData = {
+        boards: [{
+          id: "test-board-id",
+          name: "Imported Board",
+          goal: "Imported Goal",
+          landing_column_id: "test-column-1",
+          created_at: "2025-01-01T00:00:00.000Z",
+          updated_at: "2025-01-01T00:00:00.000Z"
+        }],
+        columns: [
+          {
+            id: "test-column-1",
+            board_id: "test-board-id",
+            name: "Imported To Do",
+            position: 0,
+            wip_limit: 5,
+            is_done_column: 0
+          },
+          {
+            id: "test-column-2",
+            board_id: "test-board-id",
+            name: "Imported Done",
+            position: 1,
+            wip_limit: 0,
+            is_done_column: 1
+          }
+        ],
+        tasks: [
+          {
+            id: "test-task-1",
+            column_id: "test-column-1",
+            title: "Imported Task 1",
+            content: "Imported Content 1",
+            position: 0,
+            created_at: "2025-01-01T00:00:00.000Z",
+            updated_at: "2025-01-01T00:00:00.000Z",
+            update_reason: undefined
+          },
+          {
+            id: "test-task-2",
+            column_id: "test-column-2",
+            title: "Imported Task 2",
+            content: "Imported Content 2",
+            position: 0,
+            created_at: "2025-01-01T00:00:00.000Z",
+            updated_at: "2025-01-01T00:00:00.000Z",
+            update_reason: "Import reason"
+          }
+        ]
+      };
+
+      // Import data
+      kanbanDb.importDatabase(importData);
+
+      // Verify imported board
+      const board = kanbanDb.getBoardById("test-board-id");
+      expect(board).toBeDefined();
+      expect(board?.name).toBe("Imported Board");
+      expect(board?.goal).toBe("Imported Goal");
+      expect(board?.landing_column_id).toBe("test-column-1");
+
+      // Verify imported columns
+      const columns = kanbanDb.getColumnsForBoard("test-board-id");
+      expect(columns.length).toBe(2);
+      
+      const todoColumn = columns.find(col => col.name === "Imported To Do");
+      const doneColumn = columns.find(col => col.name === "Imported Done");
+      
+      expect(todoColumn).toBeDefined();
+      expect(doneColumn).toBeDefined();
+      expect(todoColumn?.wip_limit).toBe(5);
+      expect(doneColumn?.is_done_column).toBe(1);
+
+      // Verify imported tasks
+      const task1 = kanbanDb.getTaskById("test-task-1");
+      const task2 = kanbanDb.getTaskById("test-task-2");
+      
+      expect(task1).toBeDefined();
+      expect(task2).toBeDefined();
+      expect(task1?.title).toBe("Imported Task 1");
+      expect(task1?.content).toBe("Imported Content 1");
+      expect(task1?.update_reason).toBeNull();
+      expect(task2?.title).toBe("Imported Task 2");
+      expect(task2?.update_reason).toBe("Import reason");
+    });
+
+    it("should replace existing data when importing", () => {
+      // Create initial data
+      const { boardId } = kanbanDb.createBoard("Original Board", "Original Goal", [
+        { name: "Original Column", position: 0, wipLimit: 3 },
+      ], 0);
+
+      const columns = kanbanDb.getColumnsForBoard(boardId);
+      kanbanDb.addTaskToColumn(columns[0].id, "Original Task", "Original Content");
+
+      // Verify initial data exists
+      expect(kanbanDb.getAllBoards().length).toBe(1);
+      expect(kanbanDb.getColumnsForBoard(boardId).length).toBe(1);
+
+      // Import new data
+      const importData = {
+        boards: [{
+          id: "new-board-id",
+          name: "New Board",
+          goal: "New Goal",
+          landing_column_id: "new-column-id",
+          created_at: "2025-01-01T00:00:00.000Z",
+          updated_at: "2025-01-01T00:00:00.000Z"
+        }],
+        columns: [{
+          id: "new-column-id",
+          board_id: "new-board-id",
+          name: "New Column",
+          position: 0,
+          wip_limit: 2,
+          is_done_column: 0
+        }],
+        tasks: []
+      };
+
+      kanbanDb.importDatabase(importData);
+
+      // Verify old data is replaced
+      const allBoards = kanbanDb.getAllBoards();
+      expect(allBoards.length).toBe(1);
+      expect(allBoards[0].id).toBe("new-board-id");
+      expect(allBoards[0].name).toBe("New Board");
+
+      // Verify original board no longer exists
+      const originalBoard = kanbanDb.getBoardById(boardId);
+      expect(originalBoard).toBeUndefined();
+    });
+
+    it("should handle import with update_reason as null", () => {
+      const importData = {
+        boards: [{
+          id: "test-board-id",
+          name: "Test Board",
+          goal: "Test Goal",
+          landing_column_id: "test-column-id",
+          created_at: "2025-01-01T00:00:00.000Z",
+          updated_at: "2025-01-01T00:00:00.000Z"
+        }],
+        columns: [{
+          id: "test-column-id",
+          board_id: "test-board-id",
+          name: "Test Column",
+          position: 0,
+          wip_limit: 0,
+          is_done_column: 0
+        }],
+        tasks: [{
+          id: "test-task-id",
+          column_id: "test-column-id",
+          title: "Test Task",
+          content: "Test Content",
+          position: 0,
+          created_at: "2025-01-01T00:00:00.000Z",
+          updated_at: "2025-01-01T00:00:00.000Z",
+          update_reason: undefined
+        }]
+      };
+
+      kanbanDb.importDatabase(importData);
+
+      const task = kanbanDb.getTaskById("test-task-id");
+      expect(task).toBeDefined();
+      expect(task?.update_reason).toBeNull();
+    });
+  });
+
+  describe("export/import round trip", () => {
+    it("should maintain data integrity through export and import", () => {
+      // Create complex test data
+      const { boardId: board1Id } = kanbanDb.createBoard("Board 1", "Goal 1", [
+        { name: "To Do", position: 0, wipLimit: 5 },
+        { name: "In Progress", position: 1, wipLimit: 2 },
+        { name: "Done", position: 2, wipLimit: 0, isDoneColumn: true },
+      ], 1);
+
+      const { boardId: board2Id } = kanbanDb.createBoard("Board 2", "Goal 2", [
+        { name: "Backlog", position: 0, wipLimit: 0 },
+        { name: "Active", position: 1, wipLimit: 1 },
+      ], 0);
+
+      // Add tasks with various properties
+      const board1Columns = kanbanDb.getColumnsForBoard(board1Id);
+      const board2Columns = kanbanDb.getColumnsForBoard(board2Id);
+
+      const task1 = kanbanDb.addTaskToColumn(board1Columns[0].id, "Task 1", "Content 1");
+      const task2 = kanbanDb.addTaskToColumn(board1Columns[1].id, "Task 2", "Content 2");
+      const task3 = kanbanDb.addTaskToColumn(board2Columns[0].id, "Task 3", "Content 3");
+
+      // Move a task to add update reason
+      kanbanDb.moveTask(task1.id, board1Columns[2].id, "Completed successfully");
+
+      // Export the database
+      const exportData = kanbanDb.exportDatabase();
+
+      // Clear and import
+      kanbanDb.importDatabase({
+        boards: [],
+        columns: [],
+        tasks: []
+      });
+      kanbanDb.importDatabase(exportData);
+
+      // Verify all data is preserved
+      const importedBoards = kanbanDb.getAllBoards();
+      expect(importedBoards.length).toBe(2);
+
+      const importedBoard1 = kanbanDb.getBoardById(board1Id);
+      const importedBoard2 = kanbanDb.getBoardById(board2Id);
+
+      expect(importedBoard1?.name).toBe("Board 1");
+      expect(importedBoard1?.goal).toBe("Goal 1");
+      expect(importedBoard2?.name).toBe("Board 2");
+      expect(importedBoard2?.goal).toBe("Goal 2");
+
+      // Verify columns
+      const importedBoard1Columns = kanbanDb.getColumnsForBoard(board1Id);
+      const importedBoard2Columns = kanbanDb.getColumnsForBoard(board2Id);
+
+      expect(importedBoard1Columns.length).toBe(3);
+      expect(importedBoard2Columns.length).toBe(2);
+
+      // Verify tasks and their relationships
+      const importedTask1 = kanbanDb.getTaskById(task1.id);
+      const importedTask2 = kanbanDb.getTaskById(task2.id);
+      const importedTask3 = kanbanDb.getTaskById(task3.id);
+
+      expect(importedTask1?.title).toBe("Task 1");
+      expect(importedTask1?.column_id).toBe(board1Columns[2].id); // Should be in Done column
+      expect(importedTask1?.update_reason).toBe("Completed successfully");
+
+      expect(importedTask2?.title).toBe("Task 2");
+      expect(importedTask2?.column_id).toBe(board1Columns[1].id);
+
+      expect(importedTask3?.title).toBe("Task 3");
+      expect(importedTask3?.column_id).toBe(board2Columns[0].id);
+
+      // Verify WIP limits and done column flags are preserved
+      const doneColumn = importedBoard1Columns.find(col => col.is_done_column === 1);
+      const inProgressColumn = importedBoard1Columns.find(col => col.name === "In Progress");
+
+      expect(doneColumn).toBeDefined();
+      expect(inProgressColumn?.wip_limit).toBe(2);
+    });
+  });
 });

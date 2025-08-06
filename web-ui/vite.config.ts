@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    proxy: {
+    // Only enable proxy when not running E2E tests (which use mocked APIs)
+    proxy: process.env.PLAYWRIGHT_TEST ? {} : {
       '/api': {
         target: 'http://localhost:8221',
         changeOrigin: true,

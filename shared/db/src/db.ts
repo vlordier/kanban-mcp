@@ -71,7 +71,23 @@ export interface ColumnDefinition {
 
 export class KanbanDB {
   constructor(private db: Database.Database) {
+    // Configure SQLite for better performance and safety
+    this.db.pragma('journal_mode = WAL');
+    this.db.pragma('synchronous = NORMAL');
+    this.db.pragma('cache_size = 1000');
+    this.db.pragma('foreign_keys = ON');
+    this.db.pragma('temp_store = MEMORY');
+    
     this.createSchemaIfNotExists();
+  }
+
+  /**
+   * Execute a function within a database transaction
+   * Automatically handles rollback on error and commit on success
+   */
+  public withTransaction<T>(fn: () => T): T {
+    const transaction = this.db.transaction(fn);
+    return transaction();
   }
 
   public close(): void {
@@ -408,6 +424,116 @@ export class KanbanDB {
     // Execute the transaction and return the number of changes
     const result = transaction();
     return result.changes;
+  }
+
+  public exportDatabase(): { boards: Board[]; columns: Column[]; tasks: Task[] } {
+    const boards = this.getAllBoards();
+    
+    const columnsStmt = this.db.prepare<[], Column>(`
+      SELECT id, board_id, name, position, wip_limit, is_done_column
+      FROM columns
+      ORDER BY board_id, position
+    `);
+    const columns = columnsStmt.all();
+    
+    const tasksStmt = this.db.prepare<[], Task>(`
+      SELECT id, column_id, title, content, position, created_at, updated_at, update_reason
+      FROM tasks
+      ORDER BY column_id, position
+    `);
+    const tasks = tasksStmt.all();
+    
+    return { boards, columns, tasks };
+  }
+
+  public importDatabase(data: { boards: Board[]; columns: Column[]; tasks: Task[] }): void {
+    // Data is already validated at the API layer with Zod schemas
+    // Only validate referential integrity here
+    const boardIds = new Set(data.boards.map(b => b.id));
+    const columnIds = new Set(data.columns.map(c => c.id));
+
+    // Check that all columns reference valid boards
+    for (const column of data.columns) {
+      if (!boardIds.has(column.board_id)) {
+        throw new Error(`Column "${column.name}" references non-existent board ID: ${column.board_id}`);
+      }
+    }
+
+    // Check that all tasks reference valid columns
+    for (const task of data.tasks) {
+      if (!columnIds.has(task.column_id)) {
+        throw new Error(`Task "${task.title}" references non-existent column ID: ${task.column_id}`);
+      }
+    }
+
+    // Check that landing column IDs are valid
+    for (const board of data.boards) {
+      if (board.landing_column_id && !columnIds.has(board.landing_column_id)) {
+        throw new Error(`Board "${board.name}" references non-existent landing column ID: ${board.landing_column_id}`);
+      }
+    }
+
+    const transaction = this.db.transaction(() => {
+      // Clear existing data
+      this.db.exec(`DELETE FROM tasks`);
+      this.db.exec(`DELETE FROM columns`);
+      this.db.exec(`DELETE FROM boards`);
+      
+      // Insert boards
+      const insertBoardStmt = this.db.prepare<[string, string, string, string | null, string, string]>(`
+        INSERT INTO boards (id, name, goal, landing_column_id, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      
+      for (const board of data.boards) {
+        insertBoardStmt.run(
+          board.id,
+          board.name,
+          board.goal,
+          board.landing_column_id,
+          board.created_at,
+          board.updated_at
+        );
+      }
+      
+      // Insert columns
+      const insertColumnStmt = this.db.prepare<[string, string, string, number, number, number]>(`
+        INSERT INTO columns (id, board_id, name, position, wip_limit, is_done_column)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      
+      for (const column of data.columns) {
+        insertColumnStmt.run(
+          column.id,
+          column.board_id,
+          column.name,
+          column.position,
+          column.wip_limit,
+          column.is_done_column
+        );
+      }
+      
+      // Insert tasks
+      const insertTaskStmt = this.db.prepare<[string, string, string, string, number, string, string, string | null]>(`
+        INSERT INTO tasks (id, column_id, title, content, position, created_at, updated_at, update_reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      for (const task of data.tasks) {
+        insertTaskStmt.run(
+          task.id,
+          task.column_id,
+          task.title,
+          task.content,
+          task.position,
+          task.created_at,
+          task.updated_at,
+          task.update_reason || null
+        );
+      }
+    });
+    
+    transaction();
   }
 
   private generateUUID(): string {

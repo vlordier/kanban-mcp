@@ -7,6 +7,15 @@ export interface Board {
   updated_at: string;
 }
 
+export interface Column {
+  id: string;
+  board_id: string;
+  name: string;
+  position: number;
+  wip_limit: number;
+  is_done_column: number;
+}
+
 export interface TaskSummary {
   id: string;
   title: string;

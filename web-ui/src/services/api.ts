@@ -1,29 +1,61 @@
-import { Board, ColumnWithTasks, Task } from '../types';
+import { Board, Column, ColumnWithTasks, Task } from '../types';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/api/v1';
+
+interface ApiError {
+  error: string;
+  errorId?: string;
+  timestamp?: string;
+  details?: Array<{ path: string; message: string; code: string }>;
+}
+
+class ApiException extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public errorId?: string,
+    public details?: Array<{ path: string; message: string; code: string }>
+  ) {
+    super(message);
+    this.name = 'ApiException';
+  }
+}
+
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorData: ApiError = await response.json().catch(() => ({
+      error: 'Unknown error occurred',
+    }));
+    
+    throw new ApiException(
+      errorData.error,
+      response.status,
+      errorData.errorId,
+      errorData.details
+    );
+  }
+
+  return response.json();
+}
 
 export async function getAllBoards(): Promise<Board[]> {
-  const response = await fetch(`${API_BASE_URL}/boards`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch boards');
-  }
-  return response.json();
+  return apiRequest<Board[]>('/boards');
 }
 
 export async function getBoardWithColumnsAndTasks(boardId: string): Promise<{ board: Board; columns: ColumnWithTasks[] }> {
-  const response = await fetch(`${API_BASE_URL}/boards/${boardId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch board with ID ${boardId}`);
-  }
-  return response.json();
+  return apiRequest<{ board: Board; columns: ColumnWithTasks[] }>(`/boards/${boardId}`);
 }
 
 export async function getTaskById(taskId: string): Promise<Task> {
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch task with ID ${taskId}`);
-  }
-  return response.json();
+  return apiRequest<Task>(`/tasks/${taskId}`);
 }
 
 export async function moveTask(taskId: string, targetColumnId: string, reason?: string): Promise<{
@@ -33,24 +65,10 @@ export async function moveTask(taskId: string, targetColumnId: string, reason?: 
   sourceColumnId: string;
   targetColumnId: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/move`, {
+  return apiRequest(`/tasks/${taskId}/move`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ targetColumnId, reason }),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    // Handle specific error cases
-    if (response.status === 422) {
-      throw new Error(errorData.message || 'Column capacity limit reached');
-    }
-    throw new Error(errorData.error || `Failed to move task with ID ${taskId}`);
-  }
-
-  return response.json();
 }
 
 export async function updateTask(taskId: string, content: string): Promise<{
@@ -58,20 +76,10 @@ export async function updateTask(taskId: string, content: string): Promise<{
   message: string;
   task: Task;
 }> {
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+  return apiRequest(`/tasks/${taskId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ content }),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || `Failed to update task with ID ${taskId}`);
-  }
-
-  return response.json();
 }
 
 export async function createBoard(name: string, goal: string): Promise<{
@@ -79,20 +87,10 @@ export async function createBoard(name: string, goal: string): Promise<{
   message: string;
   boardId: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/boards`, {
+  return apiRequest('/boards', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ name, goal }),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to create board');
-  }
-
-  return response.json();
 }
 
 export async function createTask(columnId: string, title: string, content: string): Promise<{
@@ -100,23 +98,10 @@ export async function createTask(columnId: string, title: string, content: strin
   message: string;
   task: Task;
 }> {
-  const response = await fetch(`${API_BASE_URL}/tasks`, {
+  return apiRequest('/tasks', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ columnId, title, content }),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    if (response.status === 422) {
-      throw new Error(errorData.message || 'Column capacity limit reached');
-    }
-    throw new Error(errorData.error || 'Failed to create task');
-  }
-
-  return response.json();
 }
 
 export async function deleteTask(taskId: string): Promise<{
@@ -125,16 +110,9 @@ export async function deleteTask(taskId: string): Promise<{
   taskId: string;
   changes: number;
 }> {
-  const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+  return apiRequest(`/tasks/${taskId}`, {
     method: 'DELETE',
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || `Failed to delete task with ID ${taskId}`);
-  }
-
-  return response.json();
 }
 
 export async function deleteBoard(boardId: string): Promise<{
@@ -142,14 +120,36 @@ export async function deleteBoard(boardId: string): Promise<{
   message: string;
   boardId: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/boards/${boardId}`, {
+  return apiRequest(`/boards/${boardId}`, {
     method: 'DELETE',
   });
+}
 
+export async function exportDatabase(): Promise<Blob> {
+  const response = await fetch(`${API_BASE_URL}/export`);
+  
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || `Failed to delete board with ID ${boardId}`);
+    const errorData: ApiError = await response.json().catch(() => ({
+      error: 'Failed to export database',
+    }));
+    
+    throw new ApiException(
+      errorData.error,
+      response.status,
+      errorData.errorId,
+      errorData.details
+    );
   }
 
-  return response.json();
+  return response.blob();
+}
+
+export async function importDatabase(data: { boards: Board[]; columns: Column[]; tasks: Task[] }): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  return apiRequest('/import', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
