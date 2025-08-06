@@ -14,23 +14,23 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
+  public override state: State = {
+    hasError: false,
   };
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     // Log error details
     this.logError(error, errorInfo);
-    
+
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Call custom error handler if provided
@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
       componentStack: errorInfo.componentStack,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
     };
 
     // In production, you might want to send this to an error reporting service
@@ -75,7 +75,7 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
-  public render() {
+  public override render() {
     if (this.state.hasError) {
       // Custom fallback UI
       if (this.props.fallback) {
@@ -89,13 +89,11 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
               <div className="text-center">
                 <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-500" />
-                <h2 className="mt-4 text-lg font-medium text-gray-900">
-                  Something went wrong
-                </h2>
+                <h2 className="mt-4 text-lg font-medium text-gray-900">Something went wrong</h2>
                 <p className="mt-2 text-sm text-gray-600">
                   We're sorry, but something unexpected happened. Please try again.
                 </p>
-                
+
                 {process.env.NODE_ENV === 'development' && this.state.error && (
                   <details className="mt-4 text-left">
                     <summary className="cursor-pointer text-sm font-medium text-gray-700">
@@ -146,7 +144,7 @@ export class ErrorBoundary extends Component<Props, State> {
 export function useErrorHandler() {
   return (error: Error, errorInfo?: string) => {
     console.error('useErrorHandler:', error);
-    
+
     // Create a synthetic error boundary error
     const errorLog = {
       message: error.message,
@@ -154,7 +152,7 @@ export function useErrorHandler() {
       errorInfo,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
     };
 
     console.error('React Hook Error:', errorLog);

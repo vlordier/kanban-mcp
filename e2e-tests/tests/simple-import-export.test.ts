@@ -1,6 +1,7 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
+import { waitForServer } from './helpers/server-health';
 
 describe('Simple Import/Export E2E Tests', () => {
   let browser: Browser;
@@ -24,8 +25,8 @@ describe('Simple Import/Export E2E Tests', () => {
       stdio: 'pipe'
     });
 
-    // Wait for server to start
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait for server to be ready with health check
+    await waitForServer({ port: 8221, timeout: 15000 });
   });
 
   afterAll(async () => {

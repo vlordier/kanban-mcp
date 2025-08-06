@@ -1,0 +1,50 @@
+{
+  "name": "kanban-mcp-monorepo",
+  "version": "1.0.0",
+  "description": "Kanban MCP system with comprehensive linting and quality checks",
+  "private": true,
+  "workspaces": [
+    "web-ui",
+    "web-server",
+    "mcp-server",
+    "shared/db"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "audit": "npm run audit --workspaces --if-present",
+    "quality": "npm run quality --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11"
+  },
+  "lint-staged": {
+    "web-ui/**/*.{ts,tsx,js,jsx}": [
+      "cd web-ui && npm run lint:fix",
+      "cd web-ui && npm run format"
+    ],
+    "web-server/**/*.{ts,js}": [
+      "cd web-server && npm run lint:fix",
+      "cd web-server && npm run format"
+    ],
+    "mcp-server/**/*.{ts,js}": [
+      "cd mcp-server && npm run lint:fix",
+      "cd mcp-server && npm run format"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}

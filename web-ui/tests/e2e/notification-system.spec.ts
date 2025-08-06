@@ -9,29 +9,29 @@ test.describe('Notification System Integration', () => {
   test('shows notification button and count badge', async ({ page }) => {
     // Verify notification button is visible
     await expect(page.locator('button[title="Notifications"]')).toBeVisible();
-    
+
     // Initially no badge should be visible (or count is 0)
     const badge = page.locator('button[title="Notifications"] .absolute');
-    
+
     // Take screenshot of initial notification button state
     await page.locator('button[title="Notifications"]').screenshot({
-      path: './screenshots/notifications/01-notification-button-initial-1754162300000.png'
+      path: './screenshots/notifications/01-notification-button-initial-1754162300000.png',
     });
   });
 
   test('displays notifications panel when clicked', async ({ page }) => {
     // Click notification button
     await page.click('button[title="Notifications"]');
-    
+
     // Verify notification panel opens
     await expect(page.locator('[data-testid="notification-panel"]')).toBeVisible();
     await expect(page.locator('text=Recent Activity')).toBeVisible();
-    
+
     // Take screenshot of opened notification panel
     await page.screenshot({
-      path: './screenshots/notifications/02-notification-panel-opened-1754162300000.png'
+      path: './screenshots/notifications/02-notification-panel-opened-1754162300000.png',
     });
-    
+
     // Close panel
     await page.click('button[title="Notifications"]');
     await expect(page.locator('[data-testid="notification-panel"]')).not.toBeVisible();
@@ -52,23 +52,23 @@ test.describe('Notification System Integration', () => {
     await page.fill('input#board-name', 'Notification Test Board');
     await page.fill('textarea#board-goal', 'Testing notification generation for board creation');
     await page.click('button:has-text("Create Board")');
-    
+
     // Wait for board creation
     await page.waitForSelector('text=Notification Test Board');
-    
+
     // Wait for notification processing
     await page.waitForTimeout(2000);
-    
+
     // Open notifications panel
     await page.click('button[title="Notifications"]');
-    
+
     // Verify notification appears
     await expect(page.locator('text=New board created')).toBeVisible();
     await expect(page.locator('text=Notification Test Board')).toBeVisible();
-    
+
     // Take screenshot of notification for board creation
     await page.screenshot({
-      path: './screenshots/notifications/03-board-creation-notification-1754162300000.png'
+      path: './screenshots/notifications/03-board-creation-notification-1754162300000.png',
     });
   });
 
@@ -91,20 +91,20 @@ test.describe('Notification System Integration', () => {
     await page.fill('input#edit-board-name', 'Edited Board Name');
     await page.fill('textarea#edit-board-goal', 'Updated goal description');
     await page.click('button:has-text("Save Changes")');
-    
+
     // Wait for edit processing
     await page.waitForTimeout(3000);
-    
+
     // Open notifications to see edit notification
     await page.click('button[title="Notifications"]');
-    
+
     // Verify edit notification appears
     await expect(page.locator('text=Board updated')).toBeVisible();
     await expect(page.locator('text=Edited Board Name')).toBeVisible();
-    
+
     // Take screenshot of edit notification
     await page.screenshot({
-      path: './screenshots/notifications/04-board-edit-notification-1754162300000.png'
+      path: './screenshots/notifications/04-board-edit-notification-1754162300000.png',
     });
   });
 
@@ -125,20 +125,20 @@ test.describe('Notification System Integration', () => {
     await page.hover('div:has-text("Board to Delete")');
     await page.click('button[title="Delete board"]');
     await page.click('button:has-text("Delete"):not(:has-text("Cancel"))');
-    
+
     // Wait for deletion processing
     await page.waitForTimeout(3000);
-    
+
     // Open notifications
     await page.click('button[title="Notifications"]');
-    
+
     // Verify deletion notification
     await expect(page.locator('text=Board deleted')).toBeVisible();
     await expect(page.locator('text=Board to Delete')).toBeVisible();
-    
-    // Take screenshot of deletion notification  
+
+    // Take screenshot of deletion notification
     await page.screenshot({
-      path: './screenshots/notifications/05-board-deletion-notification-1754162300000.png'
+      path: './screenshots/notifications/05-board-deletion-notification-1754162300000.png',
     });
   });
 
@@ -147,7 +147,7 @@ test.describe('Notification System Integration', () => {
     const boards = [
       { name: 'Badge Test 1', goal: 'First test board' },
       { name: 'Badge Test 2', goal: 'Second test board' },
-      { name: 'Badge Test 3', goal: 'Third test board' }
+      { name: 'Badge Test 3', goal: 'Third test board' },
     ];
 
     for (const board of boards) {
@@ -164,21 +164,21 @@ test.describe('Notification System Integration', () => {
     // Check for notification badge
     const badge = page.locator('button[title="Notifications"] .absolute');
     await expect(badge).toBeVisible();
-    
+
     // Take screenshot showing notification count badge
     await page.locator('button[title="Notifications"]').screenshot({
-      path: './screenshots/notifications/06-notification-count-badge-1754162300000.png'
+      path: './screenshots/notifications/06-notification-count-badge-1754162300000.png',
     });
 
     // Open notifications and verify count
     await page.click('button[title="Notifications"]');
-    
+
     // Should see 3 creation notifications
     await expect(page.locator('text=New board created')).toHaveCount(3);
-    
+
     // Take screenshot of all notifications
     await page.screenshot({
-      path: './screenshots/notifications/07-multiple-notifications-1754162300000.png'
+      path: './screenshots/notifications/07-multiple-notifications-1754162300000.png',
     });
   });
 
@@ -197,15 +197,15 @@ test.describe('Notification System Integration', () => {
 
     // Open notifications panel
     await page.click('button[title="Notifications"]');
-    
+
     // Verify notification limit (should be max 10 notifications)
     const notifications = page.locator('[data-testid="notification-panel"] .border-b');
     const count = await notifications.count();
     expect(count).toBeLessThanOrEqual(10);
-    
+
     // Take screenshot showing notification overflow handling
     await page.screenshot({
-      path: './screenshots/notifications/08-notification-overflow-1754162300000.png'
+      path: './screenshots/notifications/08-notification-overflow-1754162300000.png',
     });
   });
 
@@ -215,19 +215,19 @@ test.describe('Notification System Integration', () => {
     await page.fill('input#board-name', 'Timestamp Test Board');
     await page.fill('textarea#board-goal', 'Testing notification timestamps');
     await page.click('button:has-text("Create Board")');
-    
+
     // Wait for notification
     await page.waitForTimeout(3000);
-    
+
     // Open notifications
     await page.click('button[title="Notifications"]');
-    
+
     // Verify timestamp is shown (should show "Just now" or similar)
     await expect(page.locator('text=Just now')).toBeVisible();
-    
+
     // Take screenshot showing timestamp
     await page.screenshot({
-      path: './screenshots/notifications/09-notification-timestamp-1754162300000.png'
+      path: './screenshots/notifications/09-notification-timestamp-1754162300000.png',
     });
   });
 
@@ -243,7 +243,7 @@ test.describe('Notification System Integration', () => {
     await page.click('button[title*="Switch to dark mode"]');
     await page.waitForTimeout(500);
     await page.click('button[title*="Switch to light mode"]');
-    
+
     await page.fill('input[placeholder*="Search boards"]', 'Persistence');
     await page.waitForTimeout(1000);
     await page.click('button[title="Clear search"]');
@@ -252,10 +252,10 @@ test.describe('Notification System Integration', () => {
     await page.click('button[title="Notifications"]');
     await expect(page.locator('text=New board created')).toBeVisible();
     await expect(page.locator('text=Persistence Test')).toBeVisible();
-    
+
     // Take screenshot showing persistent notifications
     await page.screenshot({
-      path: './screenshots/notifications/10-notifications-persistent-1754162300000.png'
+      path: './screenshots/notifications/10-notifications-persistent-1754162300000.png',
     });
   });
 
@@ -273,13 +273,13 @@ test.describe('Notification System Integration', () => {
 
     // Open notifications in dark mode
     await page.click('button[title="Notifications"]');
-    
+
     // Verify notification appears with dark styling
     await expect(page.locator('text=New board created')).toBeVisible();
-    
+
     // Take screenshot of dark mode notifications
     await page.screenshot({
-      path: './screenshots/notifications/11-dark-mode-notifications-1754162300000.png'
+      path: './screenshots/notifications/11-dark-mode-notifications-1754162300000.png',
     });
   });
 
@@ -310,15 +310,15 @@ test.describe('Notification System Integration', () => {
 
     // Open notifications
     await page.click('button[title="Notifications"]');
-    
+
     // Verify we have notifications for rapid creation
     const notifications = page.locator('text=New board created');
     const notificationCount = await notifications.count();
     expect(notificationCount).toBeGreaterThan(0);
-    
+
     // Take screenshot of rapid notifications
     await page.screenshot({
-      path: './screenshots/notifications/12-rapid-notifications-1754162300000.png'
+      path: './screenshots/notifications/12-rapid-notifications-1754162300000.png',
     });
   });
 });

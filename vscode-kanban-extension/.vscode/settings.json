@@ -1,0 +1,16 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "files.exclude": {
+    "out": false,
+    "dist": false,
+    "node_modules": true,
+    "*.vsix": false
+  },
+  "search.exclude": {
+    "out": true,
+    "dist": true,
+    "node_modules": true,
+    ".vscode-test": true
+  },
+  "extensions.ignoreRecommendations": false
+}

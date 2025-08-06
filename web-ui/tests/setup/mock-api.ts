@@ -4,8 +4,9 @@ export interface MockBoard {
   id: string;
   name: string;
   goal: string;
-  createdAt: string;
-  updatedAt: string;
+  landing_column_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MockColumn {
@@ -22,8 +23,9 @@ export interface MockTask {
   title: string;
   content?: string;
   position: number;
-  createdAt: string;
-  updatedAt: string;
+  column_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export class MockApiServer {
@@ -43,8 +45,9 @@ export class MockApiServer {
       id: 'board-1',
       name: 'Test Board',
       goal: 'Default test board',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      landing_column_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     this.boards.set('board-1', defaultBoard);
 
@@ -56,7 +59,7 @@ export class MockApiServer {
         position: 1,
         wipLimit: 5,
         isLanding: false,
-        tasks: []
+        tasks: [],
       },
       {
         id: 'col-2',
@@ -64,7 +67,7 @@ export class MockApiServer {
         position: 2,
         wipLimit: 3,
         isLanding: false,
-        tasks: []
+        tasks: [],
       },
       {
         id: 'col-3',
@@ -72,8 +75,8 @@ export class MockApiServer {
         position: 3,
         wipLimit: 0,
         isLanding: false,
-        tasks: []
-      }
+        tasks: [],
+      },
     ];
     this.columns.set('board-1', defaultColumns);
   }
@@ -83,14 +86,14 @@ export class MockApiServer {
   }
 
   async setupRoutes(page: Page) {
-    // Mock GET /api/v1/boards
-    await page.route('/api/v1/boards', async (route) => {
+    // Mock GET /api/boards
+    await page.route('/api/boards', async route => {
       if (route.request().method() === 'GET') {
         const boards = Array.from(this.boards.values());
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(boards)
+          body: JSON.stringify(boards),
         });
       } else if (route.request().method() === 'POST') {
         const body = route.request().postDataJSON();
@@ -98,11 +101,12 @@ export class MockApiServer {
           id: this.generateId(),
           name: body.name,
           goal: body.goal,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          landing_column_id: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
         this.boards.set(newBoard.id, newBoard);
-        
+
         // Create default columns for new board
         const defaultColumns: MockColumn[] = [
           {
@@ -111,7 +115,7 @@ export class MockApiServer {
             position: 1,
             wipLimit: 5,
             isLanding: false,
-            tasks: []
+            tasks: [],
           },
           {
             id: this.generateId(),
@@ -119,7 +123,7 @@ export class MockApiServer {
             position: 2,
             wipLimit: 3,
             isLanding: false,
-            tasks: []
+            tasks: [],
           },
           {
             id: this.generateId(),
@@ -127,132 +131,133 @@ export class MockApiServer {
             position: 3,
             wipLimit: 0,
             isLanding: false,
-            tasks: []
-          }
+            tasks: [],
+          },
         ];
         this.columns.set(newBoard.id, defaultColumns);
-        
+
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify(newBoard)
+          body: JSON.stringify(newBoard),
         });
       }
     });
 
-    // Mock GET /api/v1/boards/:id
-    await page.route('/api/v1/boards/*', async (route) => {
+    // Mock GET /api/boards/:id
+    await page.route('/api/boards/*', async route => {
       if (route.request().method() === 'GET') {
         const url = route.request().url();
         const boardId = url.split('/').pop();
-        
+
         const board = this.boards.get(boardId!);
         const columns = this.columns.get(boardId!) || [];
-        
+
         if (board) {
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify({ board, columns })
+            body: JSON.stringify({ board, columns }),
           });
         } else {
           await route.fulfill({
             status: 404,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'Board not found' })
+            body: JSON.stringify({ error: 'Board not found' }),
           });
         }
       } else if (route.request().method() === 'PUT') {
         const url = route.request().url();
         const boardId = url.split('/').pop();
         const body = route.request().postDataJSON();
-        
+
         const board = this.boards.get(boardId!);
         if (board) {
           const updatedBoard = {
             ...board,
             name: body.name || board.name,
             goal: body.goal || board.goal,
-            updatedAt: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           };
           this.boards.set(boardId!, updatedBoard);
-          
+
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(updatedBoard)
+            body: JSON.stringify(updatedBoard),
           });
         } else {
           await route.fulfill({
             status: 404,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'Board not found' })
+            body: JSON.stringify({ error: 'Board not found' }),
           });
         }
       } else if (route.request().method() === 'DELETE') {
         const url = route.request().url();
         const boardId = url.split('/').pop();
-        
+
         if (this.boards.has(boardId!)) {
           this.boards.delete(boardId!);
           this.columns.delete(boardId!);
-          
+
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify({ success: true })
+            body: JSON.stringify({ success: true }),
           });
         } else {
           await route.fulfill({
             status: 404,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'Board not found' })
+            body: JSON.stringify({ error: 'Board not found' }),
           });
         }
       }
     });
 
     // Mock task operations
-    await page.route('/api/v1/tasks/*', async (route) => {
+    await page.route('/api/tasks/*', async route => {
       if (route.request().method() === 'GET') {
         const url = route.request().url();
         const taskId = url.split('/').pop();
-        
+
         const task = this.tasks.get(taskId!);
         if (task) {
           await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(task)
+            body: JSON.stringify(task),
           });
         } else {
           await route.fulfill({
             status: 404,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'Task not found' })
+            body: JSON.stringify({ error: 'Task not found' }),
           });
         }
       }
     });
 
     // Mock task creation and movement
-    await page.route('/api/v1/columns/*/tasks', async (route) => {
+    await page.route('/api/columns/*/tasks', async route => {
       if (route.request().method() === 'POST') {
         const url = route.request().url();
         const columnId = url.split('/')[4]; // Extract column ID from URL
         const body = route.request().postDataJSON();
-        
+
         const newTask: MockTask = {
           id: this.generateId(),
           title: body.title,
           content: body.content,
           position: body.position || 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          column_id: columnId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
-        
+
         this.tasks.set(newTask.id, newTask);
-        
+
         // Add task to column
         for (const [boardId, columns] of this.columns.entries()) {
           const column = columns.find(c => c.id === columnId);
@@ -261,27 +266,27 @@ export class MockApiServer {
             break;
           }
         }
-        
+
         await route.fulfill({
           status: 201,
           contentType: 'application/json',
-          body: JSON.stringify(newTask)
+          body: JSON.stringify(newTask),
         });
       }
     });
 
     // Mock task movement
-    await page.route('/api/v1/tasks/*/move', async (route) => {
+    await page.route('/api/tasks/*/move', async route => {
       if (route.request().method() === 'PUT') {
         const url = route.request().url();
         const taskId = url.split('/')[4];
         const body = route.request().postDataJSON();
-        
+
         // Simple mock response for task movement
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ success: true })
+          body: JSON.stringify({ success: true }),
         });
       }
     });
@@ -293,9 +298,10 @@ export class MockApiServer {
       id: this.generateId(),
       name: board.name || 'Test Board',
       goal: board.goal || 'Test Goal',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...board
+      landing_column_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...board,
     };
     this.boards.set(newBoard.id, newBoard);
     return newBoard;

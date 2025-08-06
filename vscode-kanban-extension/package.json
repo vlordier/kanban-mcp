@@ -1,0 +1,204 @@
+{
+  "name": "kanban-mcp",
+  "displayName": "Kanban MCP",
+  "description": "VSCode extension for Kanban board management using MCP",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/kanban-mcp.git"
+  },
+  "publisher": "kanban-mcp",
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "kanban-mcp.showKanbanBoard",
+        "title": "Show Kanban Board",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.createBoard",
+        "title": "Create New Board",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.refreshBoards",
+        "title": "Refresh Boards",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.openBoard",
+        "title": "Open Board",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.deleteBoard",
+        "title": "Delete Board",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.showHealthStatus",
+        "title": "Show Server Health Status",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.openBoardToColumn",
+        "title": "Open Board to Column",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.createTaskFromFile",
+        "title": "Create Kanban Task from File",
+        "category": "Kanban MCP"
+      },
+      {
+        "command": "kanban-mcp.quickCreateTask",
+        "title": "Quick Create Task",
+        "category": "Kanban MCP"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kanban-explorer",
+          "title": "Kanban",
+          "icon": "./kanban.svg"
+        }
+      ]
+    },
+    "views": {
+      "kanban-explorer": [
+        {
+          "id": "kanban-boards",
+          "name": "Boards",
+          "when": "true"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "kanban-mcp.refreshBoards",
+          "when": "view == kanban-boards",
+          "group": "navigation"
+        },
+        {
+          "command": "kanban-mcp.createBoard",
+          "when": "view == kanban-boards",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kanban-mcp.openBoard",
+          "when": "view == kanban-boards && viewItem == board",
+          "group": "inline"
+        },
+        {
+          "command": "kanban-mcp.deleteBoard",
+          "when": "view == kanban-boards && viewItem == board",
+          "group": "inline"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "kanban-mcp.createTaskFromFile",
+          "when": "resourceExtname && !explorerResourceIsFolder",
+          "group": "kanban@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "kanban-mcp.createTaskFromFile",
+          "when": "false"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "kanban-mcp.showKanbanBoard",
+        "key": "ctrl+k ctrl+b",
+        "mac": "cmd+k cmd+b",
+        "when": "true"
+      },
+      {
+        "command": "kanban-mcp.createBoard",
+        "key": "ctrl+k ctrl+n",
+        "mac": "cmd+k cmd+n",
+        "when": "true"
+      },
+      {
+        "command": "kanban-mcp.quickCreateTask",
+        "key": "ctrl+k ctrl+t",
+        "mac": "cmd+k cmd+t", 
+        "when": "true"
+      },
+      {
+        "command": "kanban-mcp.refreshBoards",
+        "key": "ctrl+k ctrl+r",
+        "mac": "cmd+k cmd+r",
+        "when": "true"
+      }
+    ],
+    "configuration": {
+      "title": "Kanban MCP",
+      "properties": {
+        "kanban-mcp.mcpServerUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "URL of the MCP Kanban server"
+        },
+        "kanban-mcp.webServerUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "URL of the Kanban web server"
+        },
+        "kanban-mcp.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh boards"
+        },
+        "kanban-mcp.refreshInterval": {
+          "type": "number",
+          "default": 30000,
+          "description": "Auto refresh interval in milliseconds"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "./scripts/package-extension.sh",
+    "package:quick": "npm run compile && vsce package --no-yarn",
+    "install:local": "npm run package:quick && code --install-extension *.vsix"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/sinon": "^10.0.20",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "@vscode/test-electron": "^2.3.8",
+    "eslint": "^8.28.0",
+    "mocha": "^10.2.0",
+    "sinon": "^17.0.1",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

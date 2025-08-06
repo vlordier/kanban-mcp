@@ -45,6 +45,28 @@ export function createDatabaseConfig(options: DatabaseConfigOptions = {}): Datab
 }
 
 /**
+ * Create production-optimized database configuration
+ */
+export function createProductionDatabaseConfig(options: DatabaseConfigOptions = {}): DatabaseConfig {
+  const baseConfig = createDatabaseConfig(options);
+  
+  return {
+    ...baseConfig,
+    // Production connection pool settings
+    maxConnections: options.maxConnections || 
+      parseInt(process.env.DB_CONNECTION_POOL_MAX || '20'),
+    
+    // Production query settings
+    queryTimeout: options.queryTimeout || 
+      parseInt(process.env.DATABASE_QUERY_TIMEOUT || '30000'),
+    
+    // Disable query logging in production for performance
+    enableLogging: false,
+    logLevel: 'error' as const
+  };
+}
+
+/**
  * Get default database URL based on provider
  */
 function getDefaultUrl(provider: string): string {
@@ -138,9 +160,9 @@ export function createTestDatabaseConfig(): DatabaseConfig {
 }
 
 /**
- * Create production database configuration with security defaults
+ * Create secure production database configuration
  */
-export function createProductionDatabaseConfig(options: {
+export function createSecureProductionDatabaseConfig(options: {
   provider: 'postgresql' | 'mysql';
   url: string;
 }): DatabaseConfig {

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircleIcon, 
-  ExclamationTriangleIcon, 
-  InformationCircleIcon, 
+import { useState, useEffect, useCallback } from 'react';
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
   XCircleIcon,
-  XMarkIcon 
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { ClientError, categorizeError } from '../services/errorHandler';
 
@@ -28,14 +28,21 @@ interface ToastProps {
   onDismiss: (id: string) => void;
 }
 
-const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
+function ToastComponent({ toast, onDismiss }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+
+  const handleDismiss = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onDismiss(toast.id);
+    }, 300); // Match the exit animation duration
+  }, [onDismiss, toast.id]);
 
   useEffect(() => {
     // Trigger enter animation
     const timer = setTimeout(() => setIsVisible(true), 10);
-    
+
     // Auto-dismiss after duration (if not persistent)
     let dismissTimer: NodeJS.Timeout;
     if (!toast.persistent && toast.duration !== 0) {
@@ -48,17 +55,10 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
       clearTimeout(timer);
       if (dismissTimer) clearTimeout(dismissTimer);
     };
-  }, [toast.duration, toast.persistent]);
-
-  const handleDismiss = () => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onDismiss(toast.id);
-    }, 300); // Match the exit animation duration
-  };
+  }, [toast.duration, toast.persistent, handleDismiss]);
 
   const getIcon = () => {
-    const className = "h-6 w-6";
+    const className = 'h-6 w-6';
     switch (toast.type) {
       case 'success':
         return <CheckCircleIcon className={`${className} text-green-400`} />;
@@ -94,9 +94,7 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
     >
       <div className={`p-4 border-l-4 ${getColorClasses()}`}>
         <div className="flex items-start">
-          <div className="flex-shrink-0">
-            {getIcon()}
-          </div>
+          <div className="flex-shrink-0">{getIcon()}</div>
           <div className="ml-3 flex-1">
             <h3 className="text-sm font-medium">{toast.title}</h3>
             <p className="mt-1 text-sm opacity-90">{toast.message}</p>
@@ -123,26 +121,22 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onDismiss }) => {
       </div>
     </div>
   );
-};
+}
 
 interface ToastContainerProps {
   toasts: Toast[];
   onDismiss: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
+export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-4">
-      {toasts.map((toast) => (
-        <ToastComponent
-          key={toast.id}
-          toast={toast}
-          onDismiss={onDismiss}
-        />
+      {toasts.map(toast => (
+        <ToastComponent key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
     </div>
   );
-};
+}
 
 // Toast manager hook
 export function useToasts() {
@@ -209,6 +203,6 @@ export function useToasts() {
     showError,
     showWarning,
     showInfo,
-    showErrorFromException
+    showErrorFromException,
   };
 }

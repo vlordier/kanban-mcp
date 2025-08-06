@@ -61,7 +61,7 @@ export class ValidationError extends ClientError {
 
 export class NotFoundError extends ClientError {
   constructor(resource: string, identifier?: string) {
-    const message = identifier 
+    const message = identifier
       ? `${resource} with identifier '${identifier}' not found`
       : `${resource} not found`;
     super(message, 404, { resource, identifier });
@@ -92,7 +92,15 @@ export class ServerError extends ClientError {
 
 // Error categorization
 export function categorizeError(error: any): {
-  category: 'network' | 'validation' | 'not_found' | 'business_logic' | 'rate_limit' | 'server' | 'timeout' | 'unknown';
+  category:
+    | 'network'
+    | 'validation'
+    | 'not_found'
+    | 'business_logic'
+    | 'rate_limit'
+    | 'server'
+    | 'timeout'
+    | 'unknown';
   severity: 'low' | 'medium' | 'high';
   isRetryable: boolean;
   userMessage: string;
@@ -102,7 +110,8 @@ export function categorizeError(error: any): {
       category: 'network',
       severity: 'high',
       isRetryable: true,
-      userMessage: 'Unable to connect to the server. Please check your internet connection and try again.'
+      userMessage:
+        'Unable to connect to the server. Please check your internet connection and try again.',
     };
   }
 
@@ -111,7 +120,7 @@ export function categorizeError(error: any): {
       category: 'timeout',
       severity: 'medium',
       isRetryable: true,
-      userMessage: 'The request is taking longer than expected. Please try again.'
+      userMessage: 'The request is taking longer than expected. Please try again.',
     };
   }
 
@@ -120,7 +129,7 @@ export function categorizeError(error: any): {
       category: 'validation',
       severity: 'low',
       isRetryable: false,
-      userMessage: error.message
+      userMessage: error.message,
     };
   }
 
@@ -129,7 +138,7 @@ export function categorizeError(error: any): {
       category: 'not_found',
       severity: 'low',
       isRetryable: false,
-      userMessage: error.message
+      userMessage: error.message,
     };
   }
 
@@ -138,7 +147,7 @@ export function categorizeError(error: any): {
       category: 'business_logic',
       severity: 'medium',
       isRetryable: false,
-      userMessage: error.message
+      userMessage: error.message,
     };
   }
 
@@ -147,7 +156,7 @@ export function categorizeError(error: any): {
       category: 'rate_limit',
       severity: 'medium',
       isRetryable: true,
-      userMessage: 'Too many requests. Please wait a moment and try again.'
+      userMessage: 'Too many requests. Please wait a moment and try again.',
     };
   }
 
@@ -156,7 +165,7 @@ export function categorizeError(error: any): {
       category: 'server',
       severity: 'high',
       isRetryable: true,
-      userMessage: 'A server error occurred. Please try again later.'
+      userMessage: 'A server error occurred. Please try again later.',
     };
   }
 
@@ -165,7 +174,7 @@ export function categorizeError(error: any): {
     category: 'unknown',
     severity: 'high',
     isRetryable: false,
-    userMessage: 'An unexpected error occurred. Please try again.'
+    userMessage: 'An unexpected error occurred. Please try again.',
   };
 }
 
@@ -183,7 +192,7 @@ const DEFAULT_RETRY_OPTIONS: RetryOptions = {
   initialDelay: 1000,
   maxDelay: 10000,
   backoffFactor: 2,
-  shouldRetry: (error, attempt) => error.isRetryable && attempt < 3
+  shouldRetry: (error, attempt) => error.isRetryable && attempt < 3,
 };
 
 export async function withRetry<T>(
@@ -198,10 +207,10 @@ export async function withRetry<T>(
     try {
       return await fn();
     } catch (error) {
-      lastError = error instanceof ClientError ? error : new ClientError(
-        error instanceof Error ? error.message : 'Unknown error',
-        500
-      );
+      lastError =
+        error instanceof ClientError
+          ? error
+          : new ClientError(error instanceof Error ? error.message : 'Unknown error', 500);
 
       attempt++;
 
@@ -214,7 +223,9 @@ export async function withRetry<T>(
         opts.maxDelay
       );
 
-      console.log(`Retrying request (attempt ${attempt}/${opts.maxRetries}) after ${delay}ms delay`);
+      console.log(
+        `Retrying request (attempt ${attempt}/${opts.maxRetries}) after ${delay}ms delay`
+      );
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -235,8 +246,8 @@ export function logError(error: Error, context: Record<string, any> = {}) {
     ...(error instanceof ClientError && {
       statusCode: error.statusCode,
       isRetryable: error.isRetryable,
-      errorContext: error.context
-    })
+      errorContext: error.context,
+    }),
   };
 
   console.error('Client Error:', errorLog);

@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useMemo,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -14,16 +7,14 @@ import {
   useSensors,
   DragOverlay,
   defaultDropAnimation,
-} from "@dnd-kit/core";
-import { TaskSummary, ColumnWithTasks } from "../types";
+} from '@dnd-kit/core';
+import { TaskSummary, ColumnWithTasks } from '../types';
 
 interface DragAndDropContextType {
   isDragging: boolean;
 }
 
-const DragAndDropContext = createContext<DragAndDropContextType | undefined>(
-  undefined
-);
+const DragAndDropContext = createContext<DragAndDropContextType | undefined>(undefined);
 
 // Define the props for our provider component
 interface DragAndDropProviderProps {
@@ -35,10 +26,7 @@ interface DragAndDropProviderProps {
   ) => Promise<void>;
 }
 
-export function DragAndDropProvider({
-  children,
-  onMoveTask,
-}: DragAndDropProviderProps) {
+export function DragAndDropProvider({ children, onMoveTask }: DragAndDropProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   // Configure sensors for drag detection with enhanced touch support
@@ -72,11 +60,9 @@ export function DragAndDropProvider({
       // If the task was dropped in a different column
       if (destinationColumnId !== sourceColumn.id) {
         if (onMoveTask) {
-          onMoveTask(task.id, sourceColumn.id, destinationColumnId).catch(
-            (error) => {
-              console.error("Failed to move task:", error);
-            }
-          );
+          onMoveTask(task.id, sourceColumn.id, destinationColumnId).catch(error => {
+            console.error('Failed to move task:', error);
+          });
         }
       }
 
@@ -104,11 +90,7 @@ export function DragAndDropProvider({
 
   return (
     <DragAndDropContext.Provider value={contextValue}>
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         {children}
 
         {/* Overlay that follows the cursor when dragging */}
@@ -124,7 +106,7 @@ export function DragAndDropProvider({
 export function useDragAndDrop() {
   const context = useContext(DragAndDropContext);
   if (context === undefined) {
-    throw new Error("useDragAndDrop must be used within a DragAndDropProvider");
+    throw new Error('useDragAndDrop must be used within a DragAndDropProvider');
   }
   return context;
 }

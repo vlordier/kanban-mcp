@@ -32,6 +32,7 @@ export default function Notification({
       }, autoCloseDelay);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [autoClose, autoCloseDelay, onClose]);
 
   const handleClose = () => {

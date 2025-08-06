@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged for automated fixes and checks
+npx lint-staged
+
+# Run security audits on all packages
+echo "🔒 Running security audits..."
+cd web-ui && npm audit --audit-level moderate || true
+cd ../web-server && npm audit --audit-level moderate || true  
+cd ../mcp-server && npm audit --audit-level moderate || true
+
+echo "✅ Pre-commit checks completed!"
