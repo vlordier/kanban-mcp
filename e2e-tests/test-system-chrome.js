@@ -7,9 +7,9 @@ async function takeScreenshotWithSystemChrome() {
   try {
     console.log('Launching browser with system Chrome...');
     
-    // Configure browser launch options
-    const launchOptions = {
+    browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: process.env.CHROME_EXECUTABLE_PATH, // Use system Chrome if available
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -20,17 +20,7 @@ async function takeScreenshotWithSystemChrome() {
         '--disable-default-apps',
         '--disable-features=VizDisplayCompositor'
       ]
-    };
-
-    // Only set executablePath if explicitly provided (for CI/CD flexibility)
-    if (process.env.CHROME_EXECUTABLE_PATH) {
-      launchOptions.executablePath = process.env.CHROME_EXECUTABLE_PATH;
-      console.log('Using custom Chrome executable:', process.env.CHROME_EXECUTABLE_PATH);
-    } else {
-      console.log('Using Puppeteer bundled Chromium');
-    }
-
-    browser = await puppeteer.launch(launchOptions);
+    });
     
     console.log('✅ Browser launched successfully with system Chrome!');
     

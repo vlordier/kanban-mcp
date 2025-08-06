@@ -8,7 +8,7 @@ test.describe('UX Improvements Final Showcase', () => {
   test('captures improved card-based layout', async ({ page }) => {
     // Wait for initial load
     await page.waitForSelector('h1:has-text("Kanban Boards")');
-
+    
     // Take full page screenshot of improved UX
     await page.screenshot({
       path: './screenshots/ux-improvements/01-card-layout-homepage-1754158800000.png',
@@ -17,25 +17,16 @@ test.describe('UX Improvements Final Showcase', () => {
 
     // Screenshot the improved search section
     await page.locator('input[placeholder*="Search boards"]').screenshot({
-      path: './screenshots/ux-improvements/02-improved-search-ux-1754158800000.png',
+      path: './screenshots/ux-improvements/02-improved-search-ux-1754158800000.png'
     });
   });
 
   test('showcases better information hierarchy', async ({ page }) => {
     // Create a few boards to show the improved layout
     const boards = [
-      {
-        name: 'User Research Project',
-        goal: 'Conduct comprehensive user interviews and usability testing to improve our product experience and identify key pain points in the current user journey.',
-      },
-      {
-        name: 'Mobile App Development',
-        goal: 'Build a responsive mobile application with modern UX patterns and seamless performance across iOS and Android platforms.',
-      },
-      {
-        name: 'Marketing Campaign Q1',
-        goal: 'Launch integrated marketing campaign across social media, email, and content marketing to increase brand awareness by 40%.',
-      },
+      { name: 'User Research Project', goal: 'Conduct comprehensive user interviews and usability testing to improve our product experience and identify key pain points in the current user journey.' },
+      { name: 'Mobile App Development', goal: 'Build a responsive mobile application with modern UX patterns and seamless performance across iOS and Android platforms.' },
+      { name: 'Marketing Campaign Q1', goal: 'Launch integrated marketing campaign across social media, email, and content marketing to increase brand awareness by 40%.' }
     ];
 
     for (const board of boards) {
@@ -54,7 +45,7 @@ test.describe('UX Improvements Final Showcase', () => {
 
     // Focus on individual board card to show improved hierarchy
     await page.locator('div:has-text("User Research Project")').first().screenshot({
-      path: './screenshots/ux-improvements/04-improved-board-card-1754158800000.png',
+      path: './screenshots/ux-improvements/04-improved-board-card-1754158800000.png'
     });
 
     // Test search functionality UX
@@ -69,7 +60,7 @@ test.describe('UX Improvements Final Showcase', () => {
     await page.hover('div:has-text("Mobile App Development")');
     await page.waitForTimeout(300);
     await page.locator('div:has-text("Mobile App Development")').first().screenshot({
-      path: './screenshots/ux-improvements/06-action-buttons-ux-1754158800000.png',
+      path: './screenshots/ux-improvements/06-action-buttons-ux-1754158800000.png'
     });
   });
 

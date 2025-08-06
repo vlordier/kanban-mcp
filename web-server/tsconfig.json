@@ -6,29 +6,8 @@
     "rootDir": ".",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
-    // Strict mode settings - most stringent possible
     "strict": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "strictBindCallApply": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "useUnknownInCatchVariables": true,
-
-    // Additional strictness
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "exactOptionalPropertyTypes": false, // More practical
-
-    "skipLibCheck": true, // Skip checking node_modules types
+    "skipLibCheck": true,
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -36,5 +15,7 @@
   },
   "include": ["./**/*"],
   "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "../shared/db" }]
+  "references": [
+    { "path": "../shared/db" }
+  ]
 }

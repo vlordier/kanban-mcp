@@ -6,31 +6,12 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "inspect": "npx @modelcontextprotocol/inspector -- node dist/server.js",
-    "lint": "eslint . --ext .ts,.js --max-warnings 0",
-    "lint:fix": "eslint . --ext .ts,.js --fix",
-    "lint:check": "eslint . --ext .ts,.js --max-warnings 0 --format=stylish",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit",
-    "audit": "npm audit --audit-level moderate",
-    "audit:fix": "npm audit fix",
-    "quality": "npm run typecheck && npm run lint:check && npm run format:check && npm run audit",
-    "pre-commit": "npm run quality"
+    "inspect": "npx @modelcontextprotocol/inspector -- node dist/server.js"
   },
   "author": "eyalzh@gmail.com",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.15.3",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.3",
-    "eslint-plugin-security": "^3.0.1",
-    "eslint-plugin-sonarjs": "^3.0.4",
-    "prettier": "^3.6.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {

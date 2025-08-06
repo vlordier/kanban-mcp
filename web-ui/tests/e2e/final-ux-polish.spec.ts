@@ -8,7 +8,7 @@ test.describe('Final UX Polish Showcase', () => {
   test('captures final polished UX design', async ({ page }) => {
     // Wait for initial load
     await page.waitForSelector('h1:has-text("Kanban Boards")');
-
+    
     // Take full page screenshot of final polished UX
     await page.screenshot({
       path: './screenshots/final-ux/01-polished-homepage-1754159200000.png',
@@ -17,18 +17,9 @@ test.describe('Final UX Polish Showcase', () => {
 
     // Create a few realistic boards to show the improved UX
     const boards = [
-      {
-        name: 'Product Roadmap 2024',
-        goal: 'Plan and execute key product features for the upcoming year, focusing on user experience improvements and market expansion.',
-      },
-      {
-        name: 'Website Redesign',
-        goal: 'Modernize company website with improved UX, better conversion rates, and mobile-first responsive design.',
-      },
-      {
-        name: 'Customer Onboarding',
-        goal: 'Streamline the customer onboarding process to reduce time-to-value and improve user retention rates.',
-      },
+      { name: 'Product Roadmap 2024', goal: 'Plan and execute key product features for the upcoming year, focusing on user experience improvements and market expansion.' },
+      { name: 'Website Redesign', goal: 'Modernize company website with improved UX, better conversion rates, and mobile-first responsive design.' },
+      { name: 'Customer Onboarding', goal: 'Streamline the customer onboarding process to reduce time-to-value and improve user retention rates.' }
     ];
 
     for (const board of boards) {
@@ -63,14 +54,14 @@ test.describe('Final UX Polish Showcase', () => {
 
     // Focus on individual board card to show status badges and improved hierarchy
     await page.locator('div:has-text("Website Redesign")').first().screenshot({
-      path: './screenshots/final-ux/04-polished-board-card-detail-1754159200000.png',
+      path: './screenshots/final-ux/04-polished-board-card-detail-1754159200000.png'
     });
 
     // Show hover state on action buttons
     await page.hover('div:has-text("Customer Onboarding") >> text=Open Board');
     await page.waitForTimeout(300);
     await page.locator('div:has-text("Customer Onboarding")').first().screenshot({
-      path: './screenshots/final-ux/05-polished-action-buttons-1754159200000.png',
+      path: './screenshots/final-ux/05-polished-action-buttons-1754159200000.png'
     });
   });
 
@@ -82,10 +73,7 @@ test.describe('Final UX Polish Showcase', () => {
     // Create one board for mobile testing
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', 'Mobile Project Dashboard');
-    await page.fill(
-      'textarea#board-goal',
-      'Optimize mobile experience with touch-friendly interface and responsive design patterns.'
-    );
+    await page.fill('textarea#board-goal', 'Optimize mobile experience with touch-friendly interface and responsive design patterns.');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(500);
 
@@ -103,7 +91,7 @@ test.describe('Final UX Polish Showcase', () => {
 
     // Check if there are many boards and pagination footer appears
     const boardCount = await page.locator('div:has-text("total boards")').textContent();
-
+    
     // If there are more than 15 boards, capture the pagination UX
     if (boardCount && parseInt(boardCount) > 15) {
       await page.screenshot({
@@ -114,7 +102,7 @@ test.describe('Final UX Polish Showcase', () => {
 
     // Screenshot the clean board counter in search area
     await page.locator('div:has-text("total board")').screenshot({
-      path: './screenshots/final-ux/08-board-counter-ux-1754159200000.png',
+      path: './screenshots/final-ux/08-board-counter-ux-1754159200000.png'
     });
   });
 });

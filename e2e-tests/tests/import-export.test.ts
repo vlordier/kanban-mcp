@@ -116,7 +116,7 @@ describe('Import/Export E2E Tests', () => {
       });
       
       // Click export button
-      await helpers.clickButtonByText('Export Database');
+      await helpers.clickButton('button:has-text("Export Database")');
       
       // Wait for download and verify content
       const exportData = await downloadPromise;
@@ -133,24 +133,19 @@ describe('Import/Export E2E Tests', () => {
       await page.waitForSelector('h1');
       
       // Click export button
-      await helpers.clickButtonByText('Export Database');
+      const exportButton = await page.waitForSelector('button:has-text("Export Database")');
+      await exportButton?.click();
       
       // Check for loading state (button should show "Exporting...")
       try {
-        await page.waitForFunction(() => {
-          const buttons = Array.from(document.querySelectorAll('button'));
-          return buttons.some(button => button.textContent?.includes('Exporting...'));
-        }, { timeout: 2000 });
+        await page.waitForSelector('button:has-text("Exporting...")', { timeout: 2000 });
         // If we get here, the loading state was shown (good!)
       } catch {
         // Loading state might be too fast to catch, which is also okay
       }
       
       // Wait for export to complete
-      await page.waitForFunction(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Export Database'));
-      }, { timeout: 5000 });
+      await page.waitForSelector('button:has-text("Export Database")', { timeout: 5000 });
     });
   });
 
@@ -160,10 +155,7 @@ describe('Import/Export E2E Tests', () => {
       await page.waitForSelector('h1');
       
       // Check if import button exists
-      const importButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Import Database'));
-      });
+      const importButton = await helpers.isElementVisible('button:has-text("Import Database")');
       expect(importButton).toBe(true);
     });
 
@@ -172,7 +164,7 @@ describe('Import/Export E2E Tests', () => {
       await page.waitForSelector('h1');
       
       // Click import button
-      await helpers.clickButtonByText('Import Database');
+      await helpers.clickButton('button:has-text("Import Database")');
       
       // Check that file input exists and is triggered
       const fileInput = await page.waitForSelector('input[type="file"][accept=".json"]');
@@ -250,12 +242,8 @@ describe('Import/Export E2E Tests', () => {
         
         // Verify the data was imported by checking the boards list
         await page.waitForSelector('table');
-        const boardName = await page.evaluate(() => {
-          const cells = Array.from(document.querySelectorAll('td'));
-          const cell = cells.find(cell => cell.textContent?.includes('Imported Board'));
-          return cell?.textContent?.trim() || '';
-        });
-        expect(boardName).toContain('Imported Board');
+        const boardName = await helpers.getElementText('td:has-text("Imported Board")');
+        expect(boardName).toBe('Imported Board');
         
       } finally {
         // Clean up test file
@@ -381,10 +369,7 @@ describe('Import/Export E2E Tests', () => {
         
         // Check for loading state on import button
         try {
-          await page.waitForFunction(() => {
-            const buttons = Array.from(document.querySelectorAll('button'));
-            return buttons.some(button => button.textContent?.includes('Importing...'));
-          }, { timeout: 1000 });
+          await page.waitForSelector('button:has-text("Importing...")', { timeout: 1000 });
         } catch {
           // Loading state might be too fast to catch
         }
@@ -427,7 +412,7 @@ describe('Import/Export E2E Tests', () => {
         });
       });
       
-      await helpers.clickButtonByText('Export Database');
+      await helpers.clickButton('button:has-text("Export Database")');
       await downloadPromise;
       
       // Verify export contains our data
@@ -474,23 +459,12 @@ describe('Import/Export E2E Tests', () => {
         
         // Verify data is restored
         await page.waitForSelector('table');
-        const restoredBoardName = await page.evaluate(() => {
-          const cells = Array.from(document.querySelectorAll('td'));
-          const cell = cells.find(cell => cell.textContent?.includes('Test Board'));
-          return cell?.textContent?.trim() || '';
-        });
-        expect(restoredBoardName).toContain('Test Board');
+        const restoredBoardName = await helpers.getElementText('td:has-text("Test Board")');
+        expect(restoredBoardName).toBe('Test Board');
         
         // Verify we can view the board details
-        const viewLink = await page.evaluateHandle(() => {
-          const links = Array.from(document.querySelectorAll('a'));
-          return links.find(link => link.textContent?.includes('View'));
-        });
-        await viewLink.click();
-        await page.waitForFunction(() => {
-          const h1 = document.querySelector('h1');
-          return h1?.textContent?.includes('Test Board');
-        });
+        await page.click('a:has-text("View")');
+        await page.waitForSelector('h1:has-text("Test Board")');
         
         // Check that tasks are present
         const taskCards = await page.$$('.task-card, [data-testid="task-card"]');
@@ -513,14 +487,8 @@ describe('Import/Export E2E Tests', () => {
       // Test desktop view (already set in beforeEach)
       await page.waitForSelector('h1');
       
-      let exportButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Export Database'));
-      });
-      let importButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Import Database'));
-      });
+      let exportButton = await helpers.isElementVisible('button:has-text("Export Database")');
+      let importButton = await helpers.isElementVisible('button:has-text("Import Database")');
       
       expect(exportButton).toBe(true);
       expect(importButton).toBe(true);
@@ -530,14 +498,8 @@ describe('Import/Export E2E Tests', () => {
       await page.reload();
       await page.waitForSelector('h1');
       
-      exportButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Export Database'));
-      });
-      importButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Import Database'));
-      });
+      exportButton = await helpers.isElementVisible('button:has-text("Export Database")');
+      importButton = await helpers.isElementVisible('button:has-text("Import Database")');
       
       expect(exportButton).toBe(true);
       expect(importButton).toBe(true);
@@ -547,14 +509,8 @@ describe('Import/Export E2E Tests', () => {
       await page.reload();
       await page.waitForSelector('h1');
       
-      exportButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Export Database'));
-      });
-      importButton = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        return buttons.some(button => button.textContent?.includes('Import Database'));
-      });
+      exportButton = await helpers.isElementVisible('button:has-text("Export Database")');
+      importButton = await helpers.isElementVisible('button:has-text("Import Database")');
       
       expect(exportButton).toBe(true);
       expect(importButton).toBe(true);
@@ -586,7 +542,7 @@ describe('Import/Export E2E Tests', () => {
       });
       
       // Try to export (should fail)
-      await helpers.clickButtonByText('Export Database');
+      await helpers.clickButton('button:has-text("Export Database")');
       
       // Wait for error dialog
       await errorPromise;
