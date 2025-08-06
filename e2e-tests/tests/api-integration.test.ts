@@ -1,7 +1,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import { waitForServer } from './helpers/server-health';
 
 describe('API Integration Tests', () => {
   let serverProcess: ChildProcess;
@@ -25,8 +24,8 @@ describe('API Integration Tests', () => {
       stdio: 'pipe'
     });
 
-    // Wait for server to be ready with health check
-    await waitForServer({ port: testPort, timeout: 15000 });
+    // Wait for server to start
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }, 30000);
 
   afterAll(async () => {

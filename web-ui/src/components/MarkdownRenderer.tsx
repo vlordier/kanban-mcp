@@ -14,9 +14,9 @@ export default function MarkdownRenderer({ content, className = '' }: MarkdownRe
     // Use marked synchronously to ensure it returns a string
     return DOMPurify.sanitize(marked.parse(content, { async: false }));
   }, [content]);
-
+  
   return (
-    <div
+    <div 
       className={`markdown-content ${className}`}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />

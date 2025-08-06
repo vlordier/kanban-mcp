@@ -59,9 +59,9 @@ export class KanbanDB {
   }
 
   async getColumnById(columnId: string): Promise<Column | undefined> {
-    // Get column using the column service
-    const column = await (this.databaseService as any).getColumnById(columnId);
-    return column || undefined;
+    // This would need to be implemented in DatabaseService if needed
+    // For now, we'll throw an error to indicate it needs to be migrated
+    throw new Error('getColumnById is deprecated. Use getBoardWithColumnsAndTasks instead.');
   }
 
   async getTaskById(taskId: string): Promise<Task | undefined> {
@@ -172,30 +172,6 @@ export class KanbanDB {
 
   async deleteBoard(boardId: string): Promise<number> {
     return this.databaseService.deleteBoard(boardId);
-  }
-
-  // Import/Export methods (simplified implementations for compatibility)
-  async exportDatabase(): Promise<any> {
-    const boards = await this.getAllBoards();
-    const result = { boards: [], columns: [], tasks: [] };
-    
-    for (const board of boards) {
-      const boardWithData = await this.getBoardWithColumnsAndTasks(board.id);
-      if (boardWithData) {
-        result.boards.push(boardWithData.board);
-        result.columns.push(...boardWithData.columns);
-        for (const column of boardWithData.columns) {
-          result.tasks.push(...column.tasks);
-        }
-      }
-    }
-    
-    return result;
-  }
-
-  async importDatabase(data: any): Promise<void> {
-    // Simplified implementation - would need proper transaction handling
-    throw new Error('Import functionality requires proper transaction handling - not yet implemented');
   }
 
   // Additional helper methods for the legacy interface

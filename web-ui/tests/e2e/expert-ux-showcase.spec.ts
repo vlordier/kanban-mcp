@@ -8,7 +8,7 @@ test.describe('Expert UX Showcase - Best in Class Design', () => {
   test('showcases expert-level light mode experience', async ({ page }) => {
     // Wait for load and ensure light mode
     await page.waitForSelector('h1:has-text("Kanban Boards")');
-
+    
     // Take full homepage screenshot in light mode
     await page.screenshot({
       path: './screenshots/expert-ux/01-light-mode-homepage-1754160000000.png',
@@ -17,18 +17,9 @@ test.describe('Expert UX Showcase - Best in Class Design', () => {
 
     // Create realistic boards with proper emojis
     const expertBoards = [
-      {
-        name: 'UX Research & Design System',
-        goal: 'Conduct comprehensive user research and build a scalable design system to improve product consistency and user experience across all touchpoints.',
-      },
-      {
-        name: 'Mobile App Development Sprint',
-        goal: 'Develop and ship the new mobile application with native performance, offline capabilities, and seamless cross-platform synchronization.',
-      },
-      {
-        name: 'Product Analytics Dashboard',
-        goal: 'Build advanced analytics dashboard with real-time insights, predictive modeling, and actionable business intelligence for data-driven decisions.',
-      },
+      { name: 'UX Research & Design System', goal: 'Conduct comprehensive user research and build a scalable design system to improve product consistency and user experience across all touchpoints.' },
+      { name: 'Mobile App Development Sprint', goal: 'Develop and ship the new mobile application with native performance, offline capabilities, and seamless cross-platform synchronization.' },
+      { name: 'Product Analytics Dashboard', goal: 'Build advanced analytics dashboard with real-time insights, predictive modeling, and actionable business intelligence for data-driven decisions.' }
     ];
 
     for (const board of expertBoards) {
@@ -47,18 +38,18 @@ test.describe('Expert UX Showcase - Best in Class Design', () => {
 
     // Focus on individual card to show expert design details
     await page.locator('div:has-text("UX Research & Design System")').first().screenshot({
-      path: './screenshots/expert-ux/03-expert-board-card-details-1754160000000.png',
+      path: './screenshots/expert-ux/03-expert-board-card-details-1754160000000.png'
     });
   });
 
   test('demonstrates dark mode excellence', async ({ page }) => {
     await page.waitForSelector('h1:has-text("Kanban Boards")');
-
+    
     // Toggle to dark mode
     await page.click('button[title*="Switch to dark mode"]');
     await page.waitForTimeout(500); // Wait for dark mode transition
-
-    // Screenshot dark mode homepage
+    
+    // Screenshot dark mode homepage  
     await page.screenshot({
       path: './screenshots/expert-ux/04-dark-mode-homepage-1754160000000.png',
       fullPage: true,
@@ -66,17 +57,14 @@ test.describe('Expert UX Showcase - Best in Class Design', () => {
 
     // Create a board to show dark mode dialogs
     await page.click('button:has-text("New Board")');
-
+    
     // Screenshot dark mode create dialog
     await page.screenshot({
-      path: './screenshots/expert-ux/05-dark-mode-create-dialog-1754160000000.png',
+      path: './screenshots/expert-ux/05-dark-mode-create-dialog-1754160000000.png'
     });
 
     await page.fill('input#board-name', 'Dark Mode Excellence');
-    await page.fill(
-      'textarea#board-goal',
-      'Demonstrating world-class dark mode design with proper color theory, contrast ratios, and visual hierarchy.'
-    );
+    await page.fill('textarea#board-goal', 'Demonstrating world-class dark mode design with proper color theory, contrast ratios, and visual hierarchy.');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(500);
 
@@ -89,27 +77,27 @@ test.describe('Expert UX Showcase - Best in Class Design', () => {
     // Show dark mode delete dialog
     await page.click('button[title="Delete board"]');
     await page.screenshot({
-      path: './screenshots/expert-ux/07-dark-mode-delete-dialog-1754160000000.png',
+      path: './screenshots/expert-ux/07-dark-mode-delete-dialog-1754160000000.png'
     });
   });
 
   test('showcases search and empty state excellence', async ({ page }) => {
     await page.waitForSelector('h1:has-text("Kanban Boards")');
-
+    
     // Test search functionality
     await page.fill('input[placeholder*="Search boards"]', 'nonexistent');
     await page.waitForTimeout(300);
-
+    
     // Screenshot expert empty search state with emoji
     await page.screenshot({
       path: './screenshots/expert-ux/08-expert-search-empty-state-1754160000000.png',
       fullPage: true,
     });
 
-    // Clear search to show main empty state
+    // Clear search to show main empty state  
     await page.click('button[title="Clear search"]');
     await page.waitForTimeout(300);
-
+    
     // Screenshot expert main empty state
     await page.screenshot({
       path: './screenshots/expert-ux/09-expert-main-empty-state-1754160000000.png',
@@ -141,39 +129,36 @@ test.describe('Expert UX Showcase - Best in Class Design', () => {
     // Test mobile create dialog
     await page.click('button:has-text("New Board")');
     await page.screenshot({
-      path: './screenshots/expert-ux/12-mobile-create-dialog-1754160000000.png',
+      path: './screenshots/expert-ux/12-mobile-create-dialog-1754160000000.png'
     });
   });
 
   test('demonstrates expert micro-interactions', async ({ page }) => {
     await page.waitForSelector('h1:has-text("Kanban Boards")');
-
+    
     // Create a board for interaction testing
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', 'Micro-Interactions Demo');
-    await page.fill(
-      'textarea#board-goal',
-      'Testing expert-level micro-interactions and hover states.'
-    );
+    await page.fill('textarea#board-goal', 'Testing expert-level micro-interactions and hover states.');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(500);
 
     // Hover over board card to show expert hover effects
     await page.hover('div:has-text("Micro-Interactions Demo")');
     await page.waitForTimeout(500);
-
+    
     // Screenshot hover state with animations
     await page.locator('div:has-text("Micro-Interactions Demo")').first().screenshot({
-      path: './screenshots/expert-ux/13-expert-hover-effects-1754160000000.png',
+      path: './screenshots/expert-ux/13-expert-hover-effects-1754160000000.png'
     });
 
     // Test button hover states
     await page.hover('button:has-text("Open Board")');
     await page.waitForTimeout(300);
-
+    
     // Screenshot button hover state
     await page.locator('div:has-text("Micro-Interactions Demo")').first().screenshot({
-      path: './screenshots/expert-ux/14-button-hover-states-1754160000000.png',
+      path: './screenshots/expert-ux/14-button-hover-states-1754160000000.png'
     });
   });
 });

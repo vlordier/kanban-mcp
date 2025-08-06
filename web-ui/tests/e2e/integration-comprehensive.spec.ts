@@ -12,25 +12,25 @@ test.describe('Comprehensive Integration Tests', () => {
       (window as any).testEvents = {
         boardsUpdated: [],
         notifications: [],
-        apiCalls: [],
+        apiCalls: []
       };
-
+      
       window.addEventListener('boardsUpdated', (event: any) => {
         (window as any).testEvents.boardsUpdated.push({
           timestamp: Date.now(),
           changes: event.detail.changes,
-          changeCount: event.detail.changes.length,
+          changeCount: event.detail.changes.length
         });
         console.log('Integration test - boardsUpdated:', event.detail);
       });
 
       // Monitor fetch calls
       const originalFetch = window.fetch;
-      window.fetch = function (...args) {
+      window.fetch = function(...args) {
         (window as any).testEvents.apiCalls.push({
           timestamp: Date.now(),
           url: args[0],
-          method: args[1]?.method || 'GET',
+          method: args[1]?.method || 'GET'
         });
         return originalFetch.apply(this, args);
       };
@@ -44,12 +44,9 @@ test.describe('Comprehensive Integration Tests', () => {
     // Step 2: Create first board
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', 'Integration Test Board 1');
-    await page.fill(
-      'textarea#board-goal',
-      '🚀 Full integration testing with real-time features, notifications, and editing capabilities'
-    );
+    await page.fill('textarea#board-goal', '🚀 Full integration testing with real-time features, notifications, and editing capabilities');
     await page.click('button:has-text("Create Board")');
-
+    
     // Verify immediate optimistic update
     await expect(page.locator('text=Integration Test Board 1')).toBeVisible();
     await expect(page.locator('text=🚀 Full integration testing')).toBeVisible();
@@ -64,10 +61,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Step 4: Create second board
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', 'Integration Test Board 2');
-    await page.fill(
-      'textarea#board-goal',
-      '⚡ Second board for testing multi-board scenarios and concurrent operations'
-    );
+    await page.fill('textarea#board-goal', '⚡ Second board for testing multi-board scenarios and concurrent operations');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(2000);
 
@@ -75,12 +69,9 @@ test.describe('Comprehensive Integration Tests', () => {
     await page.hover('div:has-text("Integration Test Board 1")');
     await page.click('button[title="Edit board"]');
     await page.fill('input#edit-board-name', '🎯 Updated Integration Test Board');
-    await page.fill(
-      'textarea#edit-board-goal',
-      '✨ Updated goal with new features and comprehensive testing coverage for all scenarios'
-    );
+    await page.fill('textarea#edit-board-goal', '✨ Updated goal with new features and comprehensive testing coverage for all scenarios');
     await page.click('button:has-text("Save Changes")');
-
+    
     // Verify edit took effect
     await expect(page.locator('text=🎯 Updated Integration Test Board')).toBeVisible();
     await expect(page.locator('text=✨ Updated goal')).toBeVisible();
@@ -105,7 +96,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Step 8: Test dark mode with all features
     await page.click('button[title*="Switch to dark mode"]');
     await page.waitForTimeout(500);
-
+    
     // Verify all elements work in dark mode
     await expect(page.locator('span:has-text("Live updates")')).toBeVisible();
     await page.click('button[title="Notifications"]');
@@ -120,7 +111,11 @@ test.describe('Comprehensive Integration Tests', () => {
     await expect(page.locator('text=🌙 Dark Mode Test Board')).toBeVisible();
 
     // Step 9: Test rapid operations
-    const rapidEdits = ['🔥 Rapid Edit 1', '⚡ Rapid Edit 2', '🚀 Rapid Edit Final'];
+    const rapidEdits = [
+      '🔥 Rapid Edit 1',
+      '⚡ Rapid Edit 2', 
+      '🚀 Rapid Edit Final'
+    ];
 
     for (const editName of rapidEdits) {
       await page.hover('div:has-text("🎯 Updated Integration Test Board")');
@@ -143,10 +138,7 @@ test.describe('Comprehensive Integration Tests', () => {
     console.log('Integration test events:', {
       boardUpdates: testEvents.boardsUpdated.length,
       apiCalls: testEvents.apiCalls.length,
-      totalChanges: testEvents.boardsUpdated.reduce(
-        (sum: number, event: any) => sum + event.changeCount,
-        0
-      ),
+      totalChanges: testEvents.boardsUpdated.reduce((sum: number, event: any) => sum + event.changeCount, 0)
     });
 
     // Verify we captured update events
@@ -156,7 +148,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Take final screenshot
     await page.screenshot({
       path: './screenshots/integration/01-full-workflow-complete-1754162500000.png',
-      fullPage: true,
+      fullPage: true
     });
   });
 
@@ -166,21 +158,21 @@ test.describe('Comprehensive Integration Tests', () => {
       (window as any).stressTest = {
         operations: [],
         errors: [],
-        startTime: Date.now(),
+        startTime: Date.now()
       };
 
       window.addEventListener('boardsUpdated', (event: any) => {
         (window as any).stressTest.operations.push({
           type: 'update',
           timestamp: Date.now(),
-          changeCount: event.detail.changes.length,
+          changeCount: event.detail.changes.length
         });
       });
 
-      window.addEventListener('error', event => {
+      window.addEventListener('error', (event) => {
         (window as any).stressTest.errors.push({
           message: event.message,
-          timestamp: Date.now(),
+          timestamp: Date.now()
         });
       });
     });
@@ -190,10 +182,7 @@ test.describe('Comprehensive Integration Tests', () => {
     for (let i = 1; i <= boardCount; i++) {
       await page.click('button:has-text("New Board")');
       await page.fill('input#board-name', `Stress Test Board ${i}`);
-      await page.fill(
-        'textarea#board-goal',
-        `Stress testing board ${i} with concurrent operations and real-time updates`
-      );
+      await page.fill('textarea#board-goal', `Stress testing board ${i} with concurrent operations and real-time updates`);
       await page.click('button:has-text("Create Board")');
       await page.waitForTimeout(200);
     }
@@ -238,7 +227,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Wait for all operations to settle
     await page.waitForTimeout(10000);
 
-    // Verify system stability
+    // Verify system stability 
     await expect(page.locator('h1:has-text("Kanban Boards")')).toBeVisible();
     await expect(page.locator('span:has-text("Live updates")')).toBeVisible();
 
@@ -251,7 +240,7 @@ test.describe('Comprehensive Integration Tests', () => {
     console.log('Stress test results:', {
       operations: stressResults.operations.length,
       errors: stressResults.errors.length,
-      duration: Date.now() - stressResults.startTime,
+      duration: Date.now() - stressResults.startTime
     });
 
     expect(stressResults.errors.length).toBe(0); // No errors should occur
@@ -259,7 +248,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Take screenshot of stress test completion
     await page.screenshot({
       path: './screenshots/integration/02-stress-test-complete-1754162500000.png',
-      fullPage: true,
+      fullPage: true
     });
   });
 
@@ -273,20 +262,14 @@ test.describe('Comprehensive Integration Tests', () => {
     // 2. User creates their first project board
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', '🎯 Q1 Product Roadmap');
-    await page.fill(
-      'textarea#board-goal',
-      '📋 Define and track key product initiatives for Q1 including feature releases, improvements, and strategic goals'
-    );
+    await page.fill('textarea#board-goal', '📋 Define and track key product initiatives for Q1 including feature releases, improvements, and strategic goals');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(1000);
 
     // 3. User creates a second board for a different project
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', '🔧 Technical Debt Cleanup');
-    await page.fill(
-      'textarea#board-goal',
-      '⚡ Address technical debt, refactor legacy code, and improve system performance and maintainability'
-    );
+    await page.fill('textarea#board-goal', '⚡ Address technical debt, refactor legacy code, and improve system performance and maintainability');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(1000);
 
@@ -299,10 +282,7 @@ test.describe('Comprehensive Integration Tests', () => {
     await page.hover('div:has-text("🎯 Q1 Product Roadmap")');
     await page.click('button[title="Edit board"]');
     await page.fill('input#edit-board-name', '🚀 Q1 Product Roadmap - Updated');
-    await page.fill(
-      'textarea#edit-board-goal',
-      '📈 Updated roadmap with latest priorities: mobile app launch, API improvements, and user experience enhancements'
-    );
+    await page.fill('textarea#edit-board-goal', '📈 Updated roadmap with latest priorities: mobile app launch, API improvements, and user experience enhancements');
     await page.click('button:has-text("Save Changes")');
     await page.waitForTimeout(2000);
 
@@ -329,10 +309,7 @@ test.describe('Comprehensive Integration Tests', () => {
     await page.click('button[title="Notifications"]'); // Close notifications
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', '🔥 Hot Fixes & Urgent Tasks');
-    await page.fill(
-      'textarea#board-goal',
-      '⚠️ Critical issues that need immediate attention and quick resolution'
-    );
+    await page.fill('textarea#board-goal', '⚠️ Critical issues that need immediate attention and quick resolution');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(1000);
 
@@ -343,8 +320,8 @@ test.describe('Comprehensive Integration Tests', () => {
     // 12. User does a final check of their boards
     const boardTitles = [
       '🚀 Q1 Product Roadmap - Updated',
-      '🔧 Technical Debt Cleanup',
-      '🔥 Hot Fixes & Urgent Tasks',
+      '🔧 Technical Debt Cleanup', 
+      '🔥 Hot Fixes & Urgent Tasks'
     ];
 
     for (const title of boardTitles) {
@@ -368,7 +345,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Take final screenshot of complete user journey
     await page.screenshot({
       path: './screenshots/integration/03-user-journey-complete-1754162500000.png',
-      fullPage: true,
+      fullPage: true
     });
   });
 
@@ -376,10 +353,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Create initial data
     await page.click('button:has-text("New Board")');
     await page.fill('input#board-name', 'Consistency Test Board');
-    await page.fill(
-      'textarea#board-goal',
-      'Testing data consistency across reloads and polling cycles'
-    );
+    await page.fill('textarea#board-goal', 'Testing data consistency across reloads and polling cycles');
     await page.click('button:has-text("Create Board")');
     await page.waitForTimeout(2000);
 
@@ -424,7 +398,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Take screenshot showing data consistency
     await page.screenshot({
       path: './screenshots/integration/04-data-consistency-verified-1754162500000.png',
-      fullPage: true,
+      fullPage: true
     });
   });
 
@@ -434,11 +408,11 @@ test.describe('Comprehensive Integration Tests', () => {
       (window as any).performanceMetrics = {
         renderTimes: [],
         apiResponseTimes: [],
-        updateEvents: 0,
+        updateEvents: 0
       };
 
       // Monitor render performance
-      const observer = new PerformanceObserver(list => {
+      const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         entries.forEach(entry => {
           if (entry.entryType === 'measure') {
@@ -460,10 +434,7 @@ test.describe('Comprehensive Integration Tests', () => {
     for (let i = 1; i <= 15; i++) {
       await page.click('button:has-text("New Board")');
       await page.fill('input#board-name', `Project Board ${i}`);
-      await page.fill(
-        'textarea#board-goal',
-        `Detailed project description for board ${i} including objectives, timeline, and key deliverables for comprehensive testing`
-      );
+      await page.fill('textarea#board-goal', `Detailed project description for board ${i} including objectives, timeline, and key deliverables for comprehensive testing`);
       await page.click('button:has-text("Create Board")');
       await page.waitForTimeout(150);
     }
@@ -514,10 +485,8 @@ test.describe('Comprehensive Integration Tests', () => {
     console.log('Performance test results:', {
       totalTime,
       updateEvents: metrics.updateEvents,
-      avgRenderTime:
-        metrics.renderTimes.length > 0
-          ? metrics.renderTimes.reduce((a, b) => a + b, 0) / metrics.renderTimes.length
-          : 0,
+      avgRenderTime: metrics.renderTimes.length > 0 ? 
+        metrics.renderTimes.reduce((a, b) => a + b, 0) / metrics.renderTimes.length : 0
     });
 
     // Performance assertions
@@ -527,7 +496,7 @@ test.describe('Comprehensive Integration Tests', () => {
     // Take screenshot of performance test result
     await page.screenshot({
       path: './screenshots/integration/05-performance-test-complete-1754162500000.png',
-      fullPage: true,
+      fullPage: true
     });
   });
 });

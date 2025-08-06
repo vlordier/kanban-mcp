@@ -11,17 +11,14 @@ interface NotificationItem {
 export default function NotificationContainer() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
-  const addNotification = useCallback(
-    (type: NotificationType, message: string, description?: string) => {
-      const id = Date.now().toString();
-      setNotifications(prev => [...prev, { id, type, message, description }]);
-      return id;
-    },
-    []
-  );
+  const addNotification = useCallback((type: NotificationType, message: string, description?: string) => {
+    const id = Date.now().toString();
+    setNotifications((prev) => [...prev, { id, type, message, description }]);
+    return id;
+  }, []);
 
   const removeNotification = useCallback((id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    setNotifications((prev) => prev.filter((notification) => notification.id !== id));
   }, []);
 
   // Expose methods to add success and error notifications
@@ -54,7 +51,7 @@ export default function NotificationContainer() {
       className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-50"
     >
       <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-        {notifications.map(notification => (
+        {notifications.map((notification) => (
           <Notification
             key={notification.id}
             type={notification.type}

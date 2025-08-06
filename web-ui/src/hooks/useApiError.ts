@@ -11,36 +11,27 @@ interface ApiError {
 export function useApiError() {
   const notifications = useNotifications();
 
-  const handleApiError = useCallback(
-    (error: unknown, fallbackMessage = 'An error occurred') => {
-      if (error instanceof Error) {
-        const apiError = error as Error & Partial<ApiError>;
-
-        if (apiError.details && apiError.details.length > 0) {
-          // Show validation errors
-          const validationMessage = apiError.details
-            .map(detail => `${detail.path}: ${detail.message}`)
-            .join(', ');
-          notifications.error('Validation Error', validationMessage);
-        } else if (apiError.status === 429) {
-          notifications.error(
-            'Rate Limited',
-            'Too many requests. Please wait before trying again.'
-          );
-        } else if (apiError.status && apiError.status >= 500) {
-          notifications.error(
-            'Server Error',
-            `${apiError.message}${apiError.errorId ? ` (ID: ${apiError.errorId})` : ''}`
-          );
-        } else {
-          notifications.error('Error', apiError.message);
-        }
+  const handleApiError = useCallback((error: unknown, fallbackMessage = 'An error occurred') => {
+    if (error instanceof Error) {
+      const apiError = error as Error & Partial<ApiError>;
+      
+      if (apiError.details && apiError.details.length > 0) {
+        // Show validation errors
+        const validationMessage = apiError.details
+          .map(detail => `${detail.path}: ${detail.message}`)
+          .join(', ');
+        notifications.error('Validation Error', validationMessage);
+      } else if (apiError.status === 429) {
+        notifications.error('Rate Limited', 'Too many requests. Please wait before trying again.');
+      } else if (apiError.status && apiError.status >= 500) {
+        notifications.error('Server Error', `${apiError.message}${apiError.errorId ? ` (ID: ${apiError.errorId})` : ''}`);
       } else {
-        notifications.error('Error', fallbackMessage);
+        notifications.error('Error', apiError.message);
       }
-    },
-    [notifications]
-  );
+    } else {
+      notifications.error('Error', fallbackMessage);
+    }
+  }, [notifications]);
 
   return { handleApiError };
 }
